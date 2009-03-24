@@ -15,20 +15,19 @@
  */
 
 $prompt = "php> ";
-$stdin  = fopen('php://stdin', 'r');
-$code = 'null';
+$__stdin__  = fopen('php://stdin', 'r');
+$__code__ = '"PHP_Repl v0.1"';
 do {
-    if (substr($code, -1) != ';') {
-        $code .= ';';
+    if (substr($__code__, -1) != ';') {
+        $__code__ .= ';';
     }
-    if (strpos($code, 'return') !== 0) {
-        $code = 'return ' . $code;
+    if (strpos($__code__, 'return') !== 0) {
+        $__code__ = 'return ' . $__code__;
     }
 
-    /* echo $code . "\n"; */
-    $res = eval($code);
+    $res = eval($__code__);
     var_dump($res);
     echo $prompt;
-} while ($code = trim(fgets($stdin)));
+} while ($__code__ = trim(fgets($__stdin__)));
 
 ?>
