@@ -98,10 +98,21 @@ class PHP_Repl
      */
     public function run()
     {
-        while ($__code__ = $this->read()) {
+        while (($__code__ = $this->read()) !== false) {
             try {
-                $this->_print($this->_eval($__code__));
+                ob_start(array($this, 'ob_cleanup'));
+                $out = null;
+                error_reporting(E_ALL | E_STRICT);
+                ini_set('html_errors', 'Off');
+                ini_set('display_errors', 'On');
+                $_ = eval($__code__);
+                ob_flush();
+                ob_end_clean();
+
+                $this->_print($_);
             } catch (Exception $e) {
+                ob_flush();
+                ob_end_clean();
                 echo $e . "\n";
             }
         }
@@ -119,50 +130,27 @@ class PHP_Repl
         if ($this->options['readline']) {
             $line = readline($this->options['prompt']);
             readline_add_history($line);
+        } else {
+            echo $this->options['prompt'];
+            $line = fgets($this->input);
+        }
+        if (strlen($line) == 0) {
             return $line;
         }
-        echo $this->options['prompt'];
-        return fgets($this->input);
-    }
 
-    /**
-     * Evaluate code
-     *
-     * @param string $_repl_code The code to eval
-     *
-     * @return mixed The output
-     */
-    private function _eval($_repl_code)
-    {
-        $_repl_code = trim($_repl_code);
+        $line = trim($line);
 
         // Add a trailing semicolon
-        if (substr($_repl_code, -1) != ';') {
-            $_repl_code .= ';';
+        if (substr($line, -1) != ';') {
+            $line .= ';';
         }
 
         // Make sure we get a value back from eval()
-        if (strpos($_repl_code, 'return') !== 0 &&
-            strpos($_repl_code, 'throw') !== 0) {
-            $_repl_code = 'return ' . $_repl_code;
+        if (strpos($line, 'return') !== 0 &&
+            strpos($line, 'throw') !== 0) {
+            $line = 'return ' . $line;
         }
-
-        ob_start(array($this, 'ob_cleanup'));
-        $out = null;
-        try {
-            error_reporting(E_ALL | E_STRICT);
-            ini_set('html_errors', 'Off');
-            ini_set('display_errors', 'On');
-            $out = eval($_repl_code);
-        } catch (Exception $e) {
-            // Clean up
-            ob_flush();
-            ob_end_clean();
-            throw $e;
-        }
-        ob_flush();
-        ob_end_clean();
-        return $out;
+        return $line;
     }
 
     /**
