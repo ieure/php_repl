@@ -37,15 +37,33 @@ class PHP_Repl
      */
     public $prompt = 'php> ';
 
+    /**
+     * Default options for new instances
+     *
+     * @var array
+     */
+    private static $default_opts = array('autorun' => false);
+
+    /**
+     * The options for this instance
+     *
+     * @var array
+     */
+    private $options = array();
+
 
     /**
      * Constructor
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($options = array())
     {
         $this->input = fopen('php://stdin', 'r');
+        $this->options = array_merge(self::$default_opts, $options);
+        if ($this->options['autorun']) {
+            $this->run();
+        }
     }
 
     /**
@@ -158,9 +176,10 @@ class PHP_Repl
     }
 }
 
-if (basename($_SERVER['argv'][0]) == basename(__FILE__)) {
-    $_repl = new PHP_Repl;
-    $_repl->run();
+// If we're being run as a script, run the REPL.
+if (php_sapi_name() == 'cli' &&
+    basename($_SERVER['argv'][0]) == basename(__FILE__)) {
+    $_repl = new PHP_Repl(array('autorun' => true));
 }
 
 ?>
