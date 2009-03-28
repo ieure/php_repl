@@ -56,6 +56,11 @@
   "Arguments for the PHP program."
   :type '(repeat string))
 
+(defcustom php-use-eval-php-mode nil
+  "Whether to enable php-eval-mode for PHP buffers."
+  :type 'boolean
+  :group 'php)
+
 (defvar inferior-php-buffer nil
   "The buffer of the current inferior PHP processs")
 
@@ -74,7 +79,6 @@
 
 (define-derived-mode inferior-php-mode comint-mode "Inferior PHP")
 
-(set 'eval-php-mode-map nil)
 (defvar eval-php-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-r" 'php-send-region)
@@ -85,10 +89,14 @@
   "Keymap for eval-php-mode.")
 
 (define-minor-mode eval-php-mode
-  "Minor mode for evaluating PHP code in an inferior process." nil "e"
+  "Minor mode for evaluating PHP code in an inferior process." nil "eval"
   :keymap eval-php-mode-map
   :group 'phprepl
   :global nil)
+
+(add-hook 'php-mode-hook
+          '(progn
+             (when php-use-eval-php-mode (eval-php-mode t)))
 
 (defun php-send-region (start end)
   "Send a region to the inferior PHP process."
@@ -107,6 +115,3 @@
 (defun php-eval-line ())
 
 (provide 'phpunit)
-
-(cond (t "haaay")
-      (nil "oh"))
