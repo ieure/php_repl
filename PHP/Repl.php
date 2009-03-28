@@ -32,20 +32,6 @@ class PHP_Repl
     private $input;
 
     /**
-     * The prompt
-     *
-     * @var string
-     */
-    public $prompt = 'php> ';
-
-    /**
-     * Default options for new instances
-     *
-     * @var array
-     */
-    private static $default_opts = array('autorun' => false);
-
-    /**
      * The options for this instance
      *
      * @var array
@@ -60,11 +46,36 @@ class PHP_Repl
      */
     public function __construct($options = array())
     {
-        $this->input = fopen('php://stdin', 'r');
-        $this->options = array_merge(self::$default_opts, $options);
+        $this->input   = fopen('php://stdin', 'r');
+        $defaults      = self::defaultOptions();
+        $this->options = array_merge($defaults, $options);
         if ($this->options['autorun']) {
             $this->run();
         }
+
+        if ($this->options['readline'] &&
+            is_readable($this->options['readline_hist'])) {
+            array_map('readline_add_history',
+                      file($this->options['readline_hist']));
+        }
+    }
+
+    /**
+     * Get default options
+     *
+     * @return array Defaults
+     */
+    private static function defaultOptions()
+    {
+        static $defaults = array('prompt'        => 'php> ',
+                                 'autorun'       => false,
+                                 'readline'      => true,
+                                 'readline_hist' => '~/.php_history');
+
+        if (!function_exists('readline') || $_ENV['TERM'] == 'dumb') {
+            $defaults['readline'] = false;
+        }
+        return $defaults;
     }
 
     /**
@@ -75,6 +86,9 @@ class PHP_Repl
     public function __destruct()
     {
         fclose($this->input);
+        if ($this->options['readline']) {
+            readline_write_history($this->options['readline_hist']);
+        }
     }
 
     /**
@@ -84,15 +98,31 @@ class PHP_Repl
      */
     public function run()
     {
-        echo $this->prompt;
-        while ($__code__ = fgets($this->input)) {
+        while ($__code__ = $this->read()) {
             try {
                 $this->_print($this->_eval($__code__));
             } catch (Exception $e) {
                 echo $e . "\n";
             }
-            echo $this->prompt;
         }
+    }
+
+    /**
+     * Read input
+     *
+     * @param
+     *
+     * @return string Input
+     */
+    private function read()
+    {
+        if ($this->options['readline']) {
+            $line = readline($this->options['prompt']);
+            readline_add_history($line);
+            return $line;
+        }
+        echo $this->options['prompt'];
+        return fgets($this->input);
     }
 
     /**
