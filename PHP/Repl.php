@@ -1,4 +1,4 @@
-#! /usr/bin/php
+#! @php_bin@
 <?php
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
@@ -20,6 +20,7 @@
  *
  * @package    PHP_Repl
  * @author     Ian Eure <ieure@php.net>
+ * @version    @package_version@
  */
 class PHP_Repl
 {
@@ -119,6 +120,9 @@ class PHP_Repl
         ob_start(array($this, 'ob_cleanup'));
         $out = null;
         try {
+            error_reporting(E_ALL | E_STRICT);
+            ini_set('html_errors', 'Off');
+            ini_set('display_errors', 'On');
             $out = eval($_repl_code);
         } catch (Exception $e) {
             // Clean up
