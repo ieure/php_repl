@@ -74,6 +74,26 @@ Dangers
    5. `ob_implicit_flush`. Always on.
    6. The output buffer’s callback method.
 
+
+Emacs Integration
+=================
+Because I really like Emacs, and enjoy the integration other languages (e.g. Common Lisp, Python, etc) have with it, I put together `phprepl.el`. It’s incomplete and may be buggy.
+
+It provides `run-php`, which will fire up the PHP REPL of your choice (not just PHP_Repl, it should work with any interactive PHP tool). It has the beginnings of a minor-mode to send regions, buffers, etc to the REPL for evaluation, but this isn’t finished yet.
+
+Installation
+------------
+Drop `php-repl.el` somewhere in your `load-path` and `(require 'php-repl)`.
+
+Configuration
+-------------
+It’s customizable; `M-x customize-group RET phprepl RET`. Point `php-repl-program` at `PHP/Repl.php`.
+
+Usage
+-----
+`M-x run-php` will fire PHP_Repl up in a `*php*` buffer. Type and be happy.
+
+
 Alternatives
 ============
 I looked at a few different projects which aim to provide similar functionality, but rejected them for various reasons.
