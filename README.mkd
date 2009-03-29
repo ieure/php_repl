@@ -74,12 +74,12 @@ Dangers
  1. The evaluated code is run in the same process as PHP_Repl, so if you evaluate something which causes a fatal error, PHP_Repl will terminate. Sorry.
  2. Output buffering is used to capture anything printed by eval’d code. If you have code which produces output over a long period of time, you may not see the results right away. Use =flush()=.
  3. Certain settings are enforced by PHP_Repl. You can’t change the values of:
-   1. `display_errors`. It’s always on.
-   2. `html_errors`. Always off.
-   3. `error_reporting`. Always `E_ALL | E_STRICT`.
-   4. Output buffering. It’s always enabled around the eval’d code.
-   5. `ob_implicit_flush`. Always on.
-   6. The output buffer’s callback method.
+    1. `display_errors`. It’s always on.
+    2. `html_errors`. Always off.
+    3. `error_reporting`. Always `E_ALL | E_STRICT`.
+    4. Output buffering. It’s always enabled around the eval’d code.
+    5. `ob_implicit_flush`. Always on.
+    6. The output buffer’s callback method.
 
 
 Emacs Integration
