@@ -38,6 +38,13 @@ class PHP_Repl
      */
     private $options = array();
 
+    /**
+     * The path to the configuration file
+     *
+     * @var string
+     */
+    private $rc_file;
+
 
     /**
      * Constructor
@@ -47,7 +54,10 @@ class PHP_Repl
     public function __construct($options = array())
     {
         $this->input   = fopen('php://stdin', 'r');
-        $defaults      = self::defaultOptions();
+        $this->rc_file = isset($_ENV['PHPREPLRC']) ? $_ENV['PHPREPLRC'] :
+            $_ENV['HOME'] . '/.phpreplrc';
+
+        $defaults      = $this->defaultOptions();
         $this->options = array_merge($defaults, $options);
         if ($this->options['autorun']) {
             $this->run();
@@ -65,15 +75,24 @@ class PHP_Repl
      *
      * @return array Defaults
      */
-    private static function defaultOptions()
+    private function defaultOptions()
     {
-        static $defaults = array('prompt'        => 'php> ',
-                                 'autorun'       => false,
-                                 'readline'      => true,
-                                 'readline_hist' => '~/.php_history');
+        $defaults = array('prompt'        => 'php> ',
+                          'autorun'       => false,
+                          'readline'      => true,
+                          'readline_hist' => $_ENV['HOME'] .
+                          '/.phprepl_history');
 
         if (!function_exists('readline') || $_ENV['TERM'] == 'dumb') {
             $defaults['readline'] = false;
+        }
+
+        if (is_readable($this->rc_file)) {
+            $rc_defaults = parse_ini_file($this->rc_file);
+            if (isset($rc_defaults['autorun'])) {
+                unset($rc_defaults['autorun']);
+            }
+            $defaults = array_merge($defaults, $rc_defaults);
         }
         return $defaults;
     }
@@ -89,6 +108,16 @@ class PHP_Repl
         if ($this->options['readline']) {
             readline_write_history($this->options['readline_hist']);
         }
+
+        // Save config
+        $fp = fopen($this->rc_file, 'w');
+        if ($fp === false) {
+            return;
+        }
+        foreach ($this->options as $k => $v) {
+            fwrite($fp, "$k = $v\n");
+        }
+        fclose($fp);
     }
 
     /**
