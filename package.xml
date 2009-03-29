@@ -6,13 +6,13 @@
                              http://pear.php.net/dtd/tasks-1.0.xsd
                              http://pear.php.net/dtd/package-2.0
                              http://pear.php.net/dtd/package-2.0.xsd">
-
     <name>PHP_Repl</name>
     <channel>pear.php.net</channel>
     <summary>An interactive read-eval-print loop for PHP</summary>
-    <description></description>
+    <description>PHP_Repl is a read-eval-print loop for PHP, written in PHP. It aims to be light, clean, modern, object-oriented, and to leverage the existing features of PHP wherever possible.</description>
     <lead>
         <name>Ian Eure</name>
+        <user>ieure</user>
         <email>ieure@php.net</email>
         <active>yes</active>
     </lead>
@@ -25,8 +25,7 @@
         <release>beta</release>
         <api>alpha</api>
     </stability>
-    <license uri="">
-    </license>
+    <license uri="http://www.opensource.org/licenses/bsd-license.php">New BSD License</license>
     <notes>
         - Initial PEARification.
         - Add php-repl script.
@@ -68,4 +67,5 @@
             </extension>
         </optional>
     </dependencies>
+    <phprelease/>
 </package>
