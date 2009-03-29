@@ -5,7 +5,7 @@ PHP_Repl is a read-eval-print loop for PHP, written in PHP. It aims to be light,
 Installation
 ============
 
-    $ git clonegit://github.com/ieure/php_repl.git
+    $ git clone git://github.com/ieure/php_repl.git
     $ cd php_repl
     $ pear package
     $ pear install PHP_Repl*tgz
