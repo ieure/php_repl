@@ -1,0 +1,94 @@
+What is PHP_Repl?
+=================
+PHP_Repl is a read-eval-print loop for PHP, written in PHP. It aims to be light, clean, modern, object-oriented, and to leverage the existing features of PHP wherever possible.
+
+
+Usage
+=====
+When you fire up PHP_Repl, you’re greeted with a prompt:
+
+    php>
+
+Any PHP code you enter here is evaluated, and it’s result printed. You don’t need to include trailing semicolons.
+
+    php> 5+5
+    int(10)
+    php>
+
+The return value of the last expression you evaluated is held in `$_`.
+
+    php> $_
+    int(10)
+    php>
+
+The type of display varies depending on the return type. Numeric types and booleans are displayed with `var_dump()`. Strings and arrays are printed with `var_export()`, and anything else uses `print_r()`.
+
+    php> "123"
+    '123'
+    php> "don't"
+    'don\'t'
+    php> 5.5
+    float(5.5)
+    php> false
+    bool(false)
+    php> null
+    NULL
+    php>
+
+Uncaught Exceptions are caught and dumped:
+
+    php> throw new Exception("Test 123", 123)
+    exception 'Exception' with message 'Test 123' in /Users/ieure/Projects/php_repl/PHP/Repl.php(108) : eval()'d code:1
+    Stack trace:
+    #0 /Users/ieure/Projects/php_repl/PHP/Repl.php(108): eval()
+    #1 /Users/ieure/Projects/php_repl/PHP/Repl.php(53): PHP_Repl->run()
+    #2 /Users/ieure/Projects/php_repl/PHP/Repl.php(248): PHP_Repl->__construct(Array)
+    #3 {main}
+    php>
+
+If an exception is caught, it’s stored in `$_`, since there won’t be a meaningful return value from the executed code.
+
+When you’re done with the REPL, you can send `^D`, `die()`, or `exit` to exit.
+
+Configuration
+=============
+PHP_Repl stores it’s configuration in `$HOME/.phpreplrc`. A default file will be created for you if none exists. Any options you set while the REPL is running will be written out when you quit it.
+
+The following options are recognized:
+
+ - `prompt`. The prompt the REPL displays.
+ - `readline`. Whether to use readline or not.
+ - `readline_hist`. The path to the readline command history file.
+
+
+Dangers
+=======
+
+ 1. The evaluated code is run in the same process as PHP_Repl, so if you evaluate something which causes a fatal error, PHP_Repl will terminate. Sorry.
+ 2. Output buffering is used to capture anything printed by eval’d code. If you have code which produces output over a long period of time, you may not see the results right away. Use =flush()=.
+ 3. Certain settings are enforced by PHP_Repl. You can’t change the values of:
+   1. `display_errors`. It’s always on.
+   2. `html_errors`. Always off.
+   3. `error_reporting`. Always `E_ALL | E_STRICT`.
+   4. Output buffering. It’s always enabled around the eval’d code.
+   5. `ob_implicit_flush`. Always on.
+   6. The output buffer’s callback method.
+
+Alternatives
+============
+I looked at a few different projects which aim to provide similar functionality, but rejected them for various reasons.
+
+ - `php -a`.
+   Built-in, unusable. It filters code through PHP as if they were plain files, so if you want any code to actually execute, you need to wrap it in `<?php ?>` tags. No prompt, line editing, or history.
+
+ - [phpsh](http://www.phpsh.org/).
+   Developed by Facebook, and unmaintained since 2006. It uses Python to wrap around PHP, and it doesn’t work with the Python shipped with OS X.
+
+ - [PHP_Shell](http://pear.php.net/package/PHP_Shell).
+   In PEAR, also unmaintained since 2006. Really, really big. Uses the Token API to parse the string before eval’ing. Rolls it’s own command language for the REPL, rather than leveraging the fact that it’s a mechanism for playing with a run environment.
+
+ - [phpa](http://david.acz.org/phpa/).
+   The closest to what I wanted, but not quite there. It’s also moldy, and it’s procedural PHP 4 code. *Requires* readline, which is nice for a terminal, but useles for running in Emacs.
+
+ - [PHP Interactive](http://www.hping.org/phpinteractive/).
+   A webapp, rather than something which can be used from the commandline.
