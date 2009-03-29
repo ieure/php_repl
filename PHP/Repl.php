@@ -101,7 +101,7 @@ class PHP_Repl
         while (($__code__ = $this->read()) !== false) {
             try {
                 ob_start(array($this, 'ob_cleanup'));
-                $out = null;
+                ob_implicit_flush(true);
                 error_reporting(E_ALL | E_STRICT);
                 ini_set('html_errors', 'Off');
                 ini_set('display_errors', 'On');
@@ -111,6 +111,7 @@ class PHP_Repl
 
                 $this->_print($_);
             } catch (Exception $e) {
+                $_ = $e;
                 ob_flush();
                 ob_end_clean();
                 echo $e . "\n";
@@ -127,6 +128,11 @@ class PHP_Repl
      */
     private function read()
     {
+        static $implicit = array('return', 'throw', 'class', 'function',
+                                 'interface', 'abstract', 'static',
+                                 'include', 'include_once', 'require',
+                                 'require_once', 'echo');
+
         if ($this->options['readline']) {
             $line = readline($this->options['prompt']);
             readline_add_history($line);
@@ -146,8 +152,8 @@ class PHP_Repl
         }
 
         // Make sure we get a value back from eval()
-        if (strpos($line, 'return') !== 0 &&
-            strpos($line, 'throw') !== 0) {
+        $first = substr($line, 0, strpos($line, " "));
+        if (!in_array($first, $implicit)) {
             $line = 'return ' . $line;
         }
         return $line;
@@ -179,14 +185,15 @@ class PHP_Repl
     {
         $type = gettype($out);
         switch ($type) {
-        case 'string':
-            printf("\"%s\"\n", $out);
-            break;
+        case 'NULL':
+        case 'double':
+        case 'float':
         case 'integer':
         case 'boolean':
             var_dump($out);
-        break;
+            break;
 
+        case 'string':
         case 'array':
             var_export($out);
             echo "\n";
@@ -194,6 +201,43 @@ class PHP_Repl
 
         default:
             print_r($out);
+        }
+    }
+
+    /**
+     * Dissect something
+     *
+     * @param mixed $thing The thing to dissect
+     *
+     * @return void
+     */
+    protected function dissect($thing)
+    {
+        $type = gettype($thing);
+        if ($thing instanceof stdClass || $type == 'boolean' ||
+            $type == 'integer') {
+            return $this->_print($thing);
+        }
+
+        if (gettype($thing) == 'object') {
+            $ro = new ReflectionObject($thing);
+            echo $ro . "\n";
+            return;
+        }
+
+        switch (true) {
+        case class_exists($thing, false):
+            $rc = new ReflectionClass($thing);
+            echo $rc . "\n";
+            return;
+
+        case function_exists($thing):
+            $rm = new ReflectionFunction($thing);
+            echo (string) $rm . "\n";
+            return;
+
+        default:
+            break;
         }
     }
 }
