@@ -1,0 +1,23 @@
+#! @php_bin@
+<?php // -*- mode: php -*-
+
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+/**
+ * Wrapper script for invoking PHP_Repl
+ *
+ * PHP version 5
+ *
+ * @category   PHP
+ * @package    Repl
+ * @author     Ian Eure <ieure@php.net>
+ * @copyright  2009 Ian Eure.
+ * @version    Release: $Id$
+ * @filesource
+ */
+
+require_once 'PHP/Repl.php';
+$_repl = new PHP_Repl(array('autorun' => true));
+$_repl->run();
+
+?>

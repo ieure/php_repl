@@ -16,10 +16,10 @@
         <email>ieure@php.net</email>
         <active>yes</active>
     </lead>
-    <date>2009-03-27</date>
+    <date>2009-03-28</date>
     <version>
-        <release>0.8.0</release>
-        <api>0.8.0</api>
+        <release>0.8.1</release>
+        <api>0.8.1</api>
     </version>
     <stability>
         <release>beta</release>
@@ -28,7 +28,8 @@
     <license uri="">
     </license>
     <notes>
-        - Initial PEARification
+        - Initial PEARification.
+        - Add php-repl script.
     </notes>
     <contents>
         <dir name="/">
@@ -39,6 +40,15 @@
                     <tasks:replace from="@package_version@" to="version"
                                    type="package-info"/>
 
+                </file>
+            </dir>
+            <dir name="scripts">
+                <file name="php-repl" role="script" install-as="php-repl"
+                      baseinstalldir="/">
+                    <tasks:replace from="@php_bin@" to="php_bin"
+                                   type="pear-config"/>
+                    <tasks:replace from="@package_version@" to="version"
+                                   type="package-info"/>
                 </file>
             </dir>
         </dir>

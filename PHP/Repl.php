@@ -1,4 +1,3 @@
-#! @php_bin@
 <?php
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
@@ -269,12 +268,6 @@ class PHP_Repl
             break;
         }
     }
-}
-
-// If we're being run as a script, run the REPL.
-if (php_sapi_name() == 'cli' &&
-    basename($_SERVER['argv'][0]) == basename(__FILE__)) {
-    $_repl = new PHP_Repl(array('autorun' => true));
 }
 
 ?>
