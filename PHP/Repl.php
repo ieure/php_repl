@@ -114,7 +114,7 @@ class PHP_Repl
             return;
         }
         foreach ($this->options as $k => $v) {
-            fwrite($fp, "$k = $v\n");
+            fwrite($fp, "$k = \"$v\"\n");
         }
         fclose($fp);
     }
@@ -126,7 +126,7 @@ class PHP_Repl
      */
     public function run()
     {
-        while (($__code__ = $this->read()) !== false) {
+        while (($__code__ = $this->read()) != false) {
             try {
                 ob_start(array($this, 'ob_cleanup'));
                 ob_implicit_flush(true);
@@ -136,7 +136,6 @@ class PHP_Repl
                 $_ = eval($__code__);
                 ob_flush();
                 ob_end_clean();
-
                 $this->_print($_);
             } catch (Exception $e) {
                 $_ = $e;
@@ -156,11 +155,6 @@ class PHP_Repl
      */
     private function read()
     {
-        static $implicit = array('return', 'throw', 'class', 'function',
-                                 'interface', 'abstract', 'static',
-                                 'include', 'include_once', 'require',
-                                 'require_once', 'echo');
-
         if ($this->options['readline']) {
             $line = readline($this->options['prompt']);
             readline_add_history($line);
@@ -168,23 +162,47 @@ class PHP_Repl
             echo $this->options['prompt'];
             $line = fgets($this->input);
         }
-        if (strlen($line) == 0) {
-            return $line;
+
+        return $line === false ? false : $this->cleanup($line);
+    }
+
+    /**
+     * Clean up the read string
+     *
+     * @param string $input The input we read
+     *
+     * @return string Cleaned up code to eval
+     */
+    private function cleanup($input)
+    {
+        static $implicit = array('return', 'throw', 'class', 'function',
+                                 'interface', 'abstract', 'static', 'echo',
+                                 'include', 'include_once', 'require',
+                                 'require_once');
+        static $sugar = array(',' => 'dissect',
+                              'd' => 'doc',
+                              'l' => 'dir');
+
+        $input = trim($input);
+
+        if (substr($input, 0, 1) == ',' &&
+            isset($sugar[$m = substr($input, 1, 1)])) {
+                call_user_func_array(array($this, $sugar[$m]),
+                                     trim(substr($input, 2)));
+            return 'return null;';
         }
 
-        $line = trim($line);
-
         // Add a trailing semicolon
-        if (substr($line, -1) != ';') {
-            $line .= ';';
+        if (substr($input, -1) != ';') {
+            $input .= ';';
         }
 
         // Make sure we get a value back from eval()
-        $first = substr($line, 0, strpos($line, " "));
+        $first = substr($input, 0, strpos($input, " "));
         if (!in_array($first, $implicit)) {
-            $line = 'return ' . $line;
+            $input = 'return ' . $input;
         }
-        return $line;
+        return $input;
     }
 
     /**
@@ -233,6 +251,30 @@ class PHP_Repl
     }
 
     /**
+     * Get reflection for something
+     *
+     * @param string $thing The thing to get reflection for
+     *
+     * @return mixed ReflectionFoo instance
+     */
+    protected function getReflection($thing)
+    {
+        switch (true) {
+        case class_exists($thing, false):
+            return new ReflectionClass($thing);
+
+        case function_exists($thing):
+            return new ReflectionFunction($thing);
+        }
+
+        if (strstr($thing, '::')) {
+            list($class, $method) = explode('::', $thing);
+            return new ReflectionClass($class);
+        }
+        throw new Exception("Don't know how to reflect $thing");
+    }
+
+    /**
      * Dissect something
      *
      * @param mixed $thing The thing to dissect
@@ -241,6 +283,8 @@ class PHP_Repl
      */
     protected function dissect($thing)
     {
+        echo (string) $this->getReflection($thing);
+        var_dump($thing);
         $type = gettype($thing);
         if ($thing instanceof stdClass || $type == 'boolean' ||
             $type == 'integer') {
@@ -252,21 +296,36 @@ class PHP_Repl
             echo $ro . "\n";
             return;
         }
+    }
 
-        switch (true) {
-        case class_exists($thing, false):
-            $rc = new ReflectionClass($thing);
-            echo $rc . "\n";
-            return;
-
-        case function_exists($thing):
-            $rm = new ReflectionFunction($thing);
-            echo (string) $rm . "\n";
-            return;
-
-        default:
-            break;
+    /**
+     * Get a list of methods and properties of a class
+     *
+     * @param mixed $thing The thing to dissect
+     *
+     * @return void
+     */
+    protected function dir($thing)
+    {
+        $rc = $this->getReflection($thing);
+        foreach ($rc->getProperties() as $prop) {
+            echo "\${$prop->getName()}\n";
         }
+        foreach ($rc->getMethods() as $meth) {
+            echo "\{$meth->getName()}()\n";
+        }
+    }
+
+    /**
+     * Get documentation for something
+     *
+     * @param mixed $thing The thing to dissect
+     *
+     * @return void
+     */
+    protected function doc($thing)
+    {
+        echo $this->getReflection($thing)->getDocComment();
     }
 }
 
