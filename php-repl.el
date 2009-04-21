@@ -36,12 +36,12 @@
 ;; You can run an inferior PHP by invoking run-php.
 ;;
 
-(defconst php-repl-version-number "0.8.0"
+(defconst php-repl-version-number "0.8.2"
   "PHP_Repl Mode version number.")
 
 (require 'comint)
 
-(defgroup phprepl nil
+(defgroup php-repl nil
   "Major mode for interacting with an inferior PHP interpreter."
   :prefix "ph-repl-"
   :group 'php)
@@ -91,11 +91,11 @@
 (define-minor-mode eval-php-mode
   "Minor mode for evaluating PHP code in an inferior process." nil "eval"
   :keymap eval-php-mode-map
-  :group 'phprepl
+  :group 'php-repl
   :global nil)
 
 (add-hook 'php-mode-hook
-          '(progn
+          '(lambda ()
              (when php-use-eval-php-mode (eval-php-mode t)))
 
 (defun php-send-region (start end)
@@ -114,4 +114,4 @@
 (defun php-eval-buffer ())
 (defun php-eval-line ())
 
-(provide 'phpunit)
+(provide 'php-repl)
