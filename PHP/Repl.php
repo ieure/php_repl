@@ -155,15 +155,41 @@ class PHP_Repl
      */
     private function read()
     {
-        if ($this->options['readline']) {
-            $line = readline($this->options['prompt']);
-            readline_add_history($line);
-        } else {
-            echo $this->options['prompt'];
-            $line = fgets($this->input);
-        }
+        $code  = '';
+        $done  = false;
+        $lines = 0;
+        do {
+            $prompt = $lines > 0 ? '> ' : $this->options['prompt'];
+            if ($this->options['readline']) {
+                $line = readline($prompt);
+            } else {
+                echo $prompt;
+                $line = fgets($this->input);
+            }
 
-        return $line === false ? false : $this->cleanup($line);
+            // If the input was empty, return false; this breaks the loop.
+            if ($line === false) {
+                return false;
+            }
+
+            $line = trim($line);
+            // If the last char is a backslash, remove it and
+            // accumulate more lines.
+            if (substr($line, -1) == '\\') {
+                $line = substr($line, 0, strlen($line) - 1);
+            } else {
+                $done = true;
+            }
+            $code .= $line;
+            $lines++;
+        } while (!$done);
+
+        $code = $this->cleanup($code);
+        // Add the whole block to the readline history.
+        if ($this->options['readline']) {
+            readline_add_history($code);
+        }
+        return $code;
     }
 
     /**
