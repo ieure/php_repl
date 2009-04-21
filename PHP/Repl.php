@@ -133,7 +133,8 @@ class PHP_Repl
                 error_reporting(E_ALL | E_STRICT);
                 ini_set('html_errors', 'Off');
                 ini_set('display_errors', 'On');
-                $_ = eval($__code__);
+                $_       = eval($__code__);
+                $__exp__ = $__code__;
                 ob_flush();
                 ob_end_clean();
                 $this->_print($_);
@@ -184,12 +185,11 @@ class PHP_Repl
             $lines++;
         } while (!$done);
 
-        $code = $this->cleanup($code);
         // Add the whole block to the readline history.
         if ($this->options['readline']) {
             readline_add_history($code);
         }
-        return $code;
+        return $this->cleanup($code);
     }
 
     /**
@@ -295,7 +295,8 @@ class PHP_Repl
 
         if (strstr($thing, '::')) {
             list($class, $method) = explode('::', $thing);
-            return new ReflectionClass($class);
+            $rc = new ReflectionClass($class);
+            return $rc->getMethod($method);
         }
         throw new Exception("Don't know how to reflect $thing");
     }
