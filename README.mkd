@@ -55,7 +55,76 @@ Uncaught Exceptions are caught and dumped:
 
 If an exception is caught, it’s stored in `$_`, since there won’t be a meaningful return value from the executed code.
 
+If the last character of the entered line is a backslash (`\`), the REPL will accumulate lines until a line not ending in a backslash is found; the block of lines will then be evaluated. When the REPL is accumulating lines, the prompt changes to `> `.
+
+    php> $foo = array('one', \
+    > 'two', \
+    > 'three')
+    array (
+      0 => 'one',
+      1 => 'two',
+      2 => 'three',
+    )
+    php>
+
+Certain aspects of the input are altered before the code is evaluated. For example, `return` is prepended for most expressions, a semicolon is added if it was omitted, and so on. Since this may produce unexpected effects, you can examine the expanded code in two ways:
+
+ 1. The  special variable `$__exp__`. This contains the expansion of the last read input. Note that evaluating this to see it’s value will overwrite it.
+ 2. The `PHP_Repl::cleanup()` method. When you pass it a string of input as you’d enter it on the REPL commandline, it will return the expanded form which will be evaluated.
+
+Examples:
+
+    php> 5+5
+    int(10)
+    php> $__exp__
+    'return 5+5;'
+    php> $this->cleanup('5+5')
+    'return 5+5;'
+    php>
+
 When you’re done with the REPL, you can send `^D`, `die()`, or `exit` to exit.
+
+Sugar
+=====
+There are a few features to make your life easier. Sugar commands run method in the REPL code to help you examine your code. They’re two characters, the first of which is always a comma, followed by a thing to examine.
+
+Documentation
+-------------
+Doc blocks can be accessed with `,d`:
+
+    php> ,d PHP_Repl
+    /**
+     * PHP_Repl
+     *
+     * @package    PHP_Repl
+     * @author     Ian Eure <ieure@php.net>
+     * @version    @package_version@
+     */
+    php> ,d PHP_Repl::read
+    /**
+     * Read input
+     *
+     * @param
+     *
+     * @return string Input
+     */
+    php>
+
+Reflection
+----------
+The REPL knows how to reflect classes, objects, and methods.
+
+    php> ,, sort
+    Function [ <internal:standard> function sort ] {
+
+      - Parameters [2] {
+        Parameter #0 [ <required> &$arg ]
+        Parameter #1 [ <optional> $sort_flags ]
+      }
+    }
+    string(4) "sort"
+    NULL
+
 
 Configuration
 =============
