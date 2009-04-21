@@ -29,6 +29,7 @@
     <notes>
         - Allow multiline input.
         - Basic dissection and sugar.
+        - Save last-evaluated code in $__exp__.
     </notes>
     <contents>
         <dir name="/">
