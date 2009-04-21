@@ -16,10 +16,10 @@
         <email>ieure@php.net</email>
         <active>yes</active>
     </lead>
-    <date>2009-03-28</date>
+    <date>2009-04-21</date>
     <version>
-        <release>0.8.1</release>
-        <api>0.8.1</api>
+        <release>0.8.5</release>
+        <api>0.8.5</api>
     </version>
     <stability>
         <release>beta</release>
@@ -27,8 +27,8 @@
     </stability>
     <license uri="http://www.opensource.org/licenses/bsd-license.php">New BSD License</license>
     <notes>
-        - Initial PEARification.
-        - Add php-repl script.
+        - Allow multiline input.
+        - Basic dissection and sugar.
     </notes>
     <contents>
         <dir name="/">
