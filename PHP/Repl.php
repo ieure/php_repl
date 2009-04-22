@@ -126,15 +126,33 @@ class PHP_Repl
      */
     public function run()
     {
-        while (($__code__ = $this->read()) != false) {
+        static $__sugar__ = array(',' => 'dissect',
+                                  'd' => 'doc',
+                                  'l' => 'dir');
+
+        $__run__ = true;
+        while ($__run__) {
             try {
+                $__code__ = $this->read();
+                if (($__run__ == (boolean) $__code__) === false) {
+                    break;
+                }
                 ob_start(array($this, 'ob_cleanup'));
                 ob_implicit_flush(true);
                 error_reporting(E_ALL | E_STRICT);
                 ini_set('html_errors', 'Off');
                 ini_set('display_errors', 'On');
-                $_       = eval($__code__);
-                $__exp__ = $__code__;
+
+                if (substr($__code__, 0, 1) == ',' &&
+                    isset($__sugar__[$m = substr($__code__, 1, 1)])) {
+                    $__code__ = preg_replace('/^,.\s*/', '', $__code__);
+                    if (substr($__code__, 0, 1) != '$') {
+                        $__code__ = "'$__code__'";
+                    }
+                    $__code__ = "\$this->dissect($__code__)";
+                }
+
+                $_ = eval($__exp__ = $this->cleanup($__code__));
                 ob_flush();
                 ob_end_clean();
                 $this->_print($_);
@@ -189,7 +207,7 @@ class PHP_Repl
         if ($this->options['readline']) {
             readline_add_history($code);
         }
-        return $this->cleanup($code);
+        return $code;
     }
 
     /**
@@ -205,18 +223,8 @@ class PHP_Repl
                                  'interface', 'abstract', 'static', 'echo',
                                  'include', 'include_once', 'require',
                                  'require_once');
-        static $sugar = array(',' => 'dissect',
-                              'd' => 'doc',
-                              'l' => 'dir');
 
         $input = trim($input);
-
-        if (substr($input, 0, 1) == ',' &&
-            isset($sugar[$m = substr($input, 1, 1)])) {
-                call_user_func_array(array($this, $sugar[$m]),
-                                     trim(substr($input, 2)));
-            return 'return null;';
-        }
 
         // Add a trailing semicolon
         if (substr($input, -1) != ';') {
@@ -286,19 +294,34 @@ class PHP_Repl
     protected function getReflection($thing)
     {
         switch (true) {
+        case is_object($thing):
+            return new ReflectionObject($thing);
+
         case class_exists($thing, false):
             return new ReflectionClass($thing);
 
         case function_exists($thing):
             return new ReflectionFunction($thing);
-        }
 
-        if (strstr($thing, '::')) {
-            list($class, $method) = explode('::', $thing);
+        case strstr($thing, '::'):
+            list($class, $what) = explode('::', $thing);
             $rc = new ReflectionClass($class);
-            return $rc->getMethod($method);
+
+            switch (true) {
+            case substr($what, -2) == '()':
+                $what = substr($what, 0, strlen($what) - 2);
+            case $rc->hasMethod($what):
+                return $rc->getMethod($what);
+
+            case substr($what, 0, 1) == '$':
+                $what = substr($what, 1);
+            case $rc->hasProperty($what):
+                return $rc->getProperty($what);
+
+            case $rc->hasConstant($what):
+                return $rc->getConstant($what);
+            }
         }
-        throw new Exception("Don't know how to reflect $thing");
     }
 
     /**
@@ -310,19 +333,9 @@ class PHP_Repl
      */
     protected function dissect($thing)
     {
-        echo (string) $this->getReflection($thing);
-        var_dump($thing);
-        $type = gettype($thing);
-        if ($thing instanceof stdClass || $type == 'boolean' ||
-            $type == 'integer') {
-            return $this->_print($thing);
-        }
-
-        if (gettype($thing) == 'object') {
-            $ro = new ReflectionObject($thing);
-            echo $ro . "\n";
-            return;
-        }
+        $ref = $this->getReflection($thing);
+        echo (string) $ref;
+        return get_class($ref);
     }
 
     /**
@@ -352,7 +365,8 @@ class PHP_Repl
      */
     protected function doc($thing)
     {
-        echo $this->getReflection($thing)->getDocComment();
+        echo preg_replace('/^\s*\*/m', ' *',
+                          $this->getReflection($thing)->getDocComment());
     }
 }
 
