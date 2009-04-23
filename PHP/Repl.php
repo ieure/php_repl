@@ -140,7 +140,7 @@ class PHP_Repl
                 ini_set('html_errors', 'Off');
                 ini_set('display_errors', 'On');
 
-                $this->_print($_ = eval($__exp__ = $this->cleanup($__code__)));
+                $this->_print($_ = eval($this->cleanup($__code__)));
             } catch (Exception $e) {
                 echo ($_ = $e) . "\n";
             }
@@ -207,7 +207,8 @@ class PHP_Repl
                                  'require_once');
         static $sugar    = array(',' => 'dissect',
                                  'd' => 'doc',
-                                 'l' => 'dir');
+                                 'l' => 'dir',
+                                 'e' => 'cleanup');
 
         $input = trim($input);
 
