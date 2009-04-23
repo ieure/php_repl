@@ -209,6 +209,7 @@ class PHP_Repl
                                  'd' => 'doc',
                                  'l' => 'dir',
                                  'e' => 'cleanup');
+        static $last;
 
         $input = trim($input);
 
@@ -216,6 +217,10 @@ class PHP_Repl
         if (substr($input, 0, 1) == ',' &&
             isset($sugar[$m = substr($input, 1, 1)])) {
             $input = preg_replace('/^,.\s*/', '', $input);
+            if (empty($input)) {
+                $input = $last;
+            }
+
             if (substr($input, 0, 1) != '$') {
                 $input = "'$input'";
             }
@@ -234,7 +239,7 @@ class PHP_Repl
             $input = 'return ' . $input;
         }
 
-        return $input;
+        return $last = $input;
     }
 
     /**
@@ -364,7 +369,7 @@ class PHP_Repl
     protected function doc($thing)
     {
         echo preg_replace('/^\s*\*/m', ' *',
-                          $this->getReflection($thing)->getDocComment());
+                          $this->getReflection($thing)->getDocComment()) . "\n";
         return "---";
     }
 }
