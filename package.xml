@@ -18,8 +18,8 @@
     </lead>
     <date>2009-04-21</date>
     <version>
-        <release>0.8.5</release>
-        <api>0.8.5</api>
+        <release>0.8.6dev1</release>
+        <api>0.8.6</api>
     </version>
     <stability>
         <release>beta</release>
@@ -50,6 +50,9 @@
                     <tasks:replace from="@package_version@" to="version"
                                    type="package-info"/>
                 </file>
+            </dir>
+            <dir name="data">
+                <file name="php-repl.el" role="data"/>
             </dir>
         </dir>
     </contents>
