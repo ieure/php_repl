@@ -126,6 +126,7 @@ class PHP_Repl
      */
     public function run()
     {
+        ob_start();
         while (true) {
             ob_flush();
             ob_end_clean();
