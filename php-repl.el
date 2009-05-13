@@ -78,6 +78,11 @@
     (inferior-php-mode)))
 
 (define-derived-mode inferior-php-mode comint-mode "Inferior PHP")
+(defvar inferior-php-mode-abbrev-table
+  (make-abbrev-table))
+(derived-mode-merge-abbrev-tables php-mode-abbrev-table
+                                  inferior-php-mode-abbrev-table)
+(derived-mode-set-abbrev-table 'inferior-php-omode)
 
 (defvar eval-php-mode-map
   (let ((map (make-sparse-keymap)))
