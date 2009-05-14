@@ -126,15 +126,13 @@ class PHP_Repl
      */
     public function run()
     {
-        static $__sugar__ = array(',' => 'dissect',
-                                  'd' => 'doc',
-                                  'l' => 'dir');
+        ob_start();
+        while (true) {
+            ob_flush();
+            ob_end_clean();
 
-        $__run__ = true;
-        while ($__run__) {
             try {
-                $__code__ = $this->read();
-                if (($__run__ == (boolean) $__code__) === false) {
+                if (((boolean) $__code__ = $this->read()) === false) {
                     break;
                 }
                 ob_start(array($this, 'ob_cleanup'));
@@ -143,24 +141,9 @@ class PHP_Repl
                 ini_set('html_errors', 'Off');
                 ini_set('display_errors', 'On');
 
-                if (substr($__code__, 0, 1) == ',' &&
-                    isset($__sugar__[$m = substr($__code__, 1, 1)])) {
-                    $__code__ = preg_replace('/^,.\s*/', '', $__code__);
-                    if (substr($__code__, 0, 1) != '$') {
-                        $__code__ = "'$__code__'";
-                    }
-                    $__code__ = "\$this->dissect($__code__)";
-                }
-
-                $_ = eval($__exp__ = $this->cleanup($__code__));
-                ob_flush();
-                ob_end_clean();
-                $this->_print($_);
+                $this->_print($_ = eval($this->cleanup($__code__)));
             } catch (Exception $e) {
-                $_ = $e;
-                ob_flush();
-                ob_end_clean();
-                echo $e . "\n";
+                echo ($_ = $e) . "\n";
             }
         }
     }
@@ -223,8 +206,28 @@ class PHP_Repl
                                  'interface', 'abstract', 'static', 'echo',
                                  'include', 'include_once', 'require',
                                  'require_once');
+        static $sugar    = array(',' => 'dissect',
+                                 'd' => 'doc',
+                                 'l' => 'dir',
+                                 'e' => 'cleanup');
+        static $last;
 
         $input = trim($input);
+
+        // Sugar
+        if (substr($input, 0, 1) == ',' &&
+            isset($sugar[$m = substr($input, 1, 1)])) {
+            $input = preg_replace('/^,.\s*/', '', $input);
+            if (empty($input)) {
+                $input = $last;
+            }
+
+            if (substr($input, 0, 1) != '$') {
+                $input = "'$input'";
+            }
+            return $this->cleanup("\$this->{$sugar[$m]}($input)");
+        }
+
 
         // Add a trailing semicolon
         if (substr($input, -1) != ';') {
@@ -236,7 +239,8 @@ class PHP_Repl
         if (!in_array($first, $implicit)) {
             $input = 'return ' . $input;
         }
-        return $input;
+
+        return $last = $input;
     }
 
     /**
@@ -333,9 +337,8 @@ class PHP_Repl
      */
     protected function dissect($thing)
     {
-        $ref = $this->getReflection($thing);
-        echo (string) $ref;
-        return get_class($ref);
+        echo (string) $ref = $this->getReflection($thing);
+        return "---";
     }
 
     /**
@@ -354,6 +357,7 @@ class PHP_Repl
         foreach ($rc->getMethods() as $meth) {
             echo "\{$meth->getName()}()\n";
         }
+        return "---";
     }
 
     /**
@@ -366,7 +370,8 @@ class PHP_Repl
     protected function doc($thing)
     {
         echo preg_replace('/^\s*\*/m', ' *',
-                          $this->getReflection($thing)->getDocComment());
+                          $this->getReflection($thing)->getDocComment()) . "\n";
+        return "---";
     }
 }
 

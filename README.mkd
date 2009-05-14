@@ -45,11 +45,11 @@ The type of display varies depending on the return type. Numeric types and boole
 Uncaught Exceptions are caught and dumped:
 
     php> throw new Exception("Test 123", 123)
-    exception 'Exception' with message 'Test 123' in /Users/ieure/Projects/php_repl/PHP/Repl.php(108) : eval()'d code:1
+    exception 'Exception' with message 'Test 123' in /Users/ieure/Projects/php_repl/PHP/Repl.php(143) : eval()'d code:1
     Stack trace:
-    #0 /Users/ieure/Projects/php_repl/PHP/Repl.php(108): eval()
-    #1 /Users/ieure/Projects/php_repl/PHP/Repl.php(53): PHP_Repl->run()
-    #2 /Users/ieure/Projects/php_repl/PHP/Repl.php(248): PHP_Repl->__construct(Array)
+    #0 /Users/ieure/Projects/php_repl/PHP/Repl.php(143): eval()
+    #1 /Users/ieure/Projects/php_repl/PHP/Repl.php(62): PHP_Repl->run()
+    #2 /Users/ieure/Projects/php_repl/testrepl(20): PHP_Repl->__construct(Array)
     #3 {main}
     php>
 
@@ -67,22 +67,9 @@ If the last character of the entered line is a backslash (`\`), the REPL will ac
     )
     php>
 
-Certain aspects of the input are altered before the code is evaluated. For example, `return` is prepended for most expressions, a semicolon is added if it was omitted, and so on. Since this may produce unexpected effects, you can examine the expanded code in two ways:
+Certain aspects of the input are altered before the code is evaluated. For example, `return` is prepended for most expressions, a semicolon is added if it was omitted, and so on. See /Expansion/, below.
 
- 1. The  special variable `$__exp__`. This contains the expansion of the last read input. Note that evaluating this to see it’s value will overwrite it.
- 2. The `PHP_Repl::cleanup()` method. When you pass it a string of input as you’d enter it on the REPL commandline, it will return the expanded form which will be evaluated.
-
-Examples:
-
-    php> 5+5
-    int(10)
-    php> $__exp__
-    'return 5+5;'
-    php> $this->cleanup('5+5')
-    'return 5+5;'
-    php>
-
-When you’re done with the REPL, you can send `^D`, `die()`, or `exit` to exit.
+When you’re done with the REPL, you can send `^D`, `die`, or `exit` to quit.
 
 Sugar
 =====
@@ -100,6 +87,7 @@ Doc blocks can be accessed with `,d`:
      * @author     Ian Eure <ieure@php.net>
      * @version    @package_version@
      */
+    '---'
     php> ,d PHP_Repl::read
     /**
      * Read input
@@ -108,6 +96,7 @@ Doc blocks can be accessed with `,d`:
      *
      * @return string Input
      */
+    '---'
     php>
 
 Reflection
@@ -122,8 +111,20 @@ The REPL knows how to reflect classes, objects, and methods.
         Parameter #1 [ <optional> $sort_flags ]
       }
     }
-    string(4) "sort"
-    NULL
+    '---'
+
+Expansion
+---------
+As mentioned, input is slightly altered before it is evaluated. Since this may produce unexpected effects, you can examine the expanded code with the `,e` shortcut, or by running `$this->cleanup()`:
+
+    php> 5+5
+    int(10)
+    php> ,e
+    'return 5+5;'
+    php> $this->cleanup('5+5')
+    'return 5+5;'
+    php> ,e 5+5
+    'return 5+5;'
 
 
 Configuration

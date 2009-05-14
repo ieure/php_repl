@@ -18,8 +18,8 @@
     </lead>
     <date>2009-04-21</date>
     <version>
-        <release>0.8.5</release>
-        <api>0.8.5</api>
+        <release>0.8.6dev2</release>
+        <api>0.8.6</api>
     </version>
     <stability>
         <release>beta</release>
@@ -30,6 +30,7 @@
         - Allow multiline input.
         - Basic dissection and sugar.
         - Save last-evaluated code in $__exp__.
+        - Start output buffering at the top of run().
     </notes>
     <contents>
         <dir name="/">
@@ -40,7 +41,7 @@
                     <tasks:replace from="@package_version@" to="version"
                                    type="package-info"/>
 
-                </file>
+                </file>)
             </dir>
             <dir name="scripts">
                 <file name="php-repl" role="script" install-as="php-repl"
@@ -50,6 +51,9 @@
                     <tasks:replace from="@package_version@" to="version"
                                    type="package-info"/>
                 </file>
+            </dir>
+            <dir name="data">
+                <file name="php-repl.el" role="data"/>
             </dir>
         </dir>
     </contents>

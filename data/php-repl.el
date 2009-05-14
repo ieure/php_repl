@@ -74,7 +74,8 @@
      "PHP" buf php-repl-program nil
      (mapconcat 'identity php-repl-program-arguments " "))
     (setq inferior-php-buffer buf)
-    (pop-to-buffer buf t)
+    (display-buffer buf t)
+    ;; (pop-to-buffer buf t)
     (inferior-php-mode)))
 
 (define-derived-mode inferior-php-mode comint-mode "Inferior PHP")
