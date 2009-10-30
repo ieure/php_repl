@@ -53,8 +53,8 @@ class PHP_Repl
     public function __construct($options = array())
     {
         $this->input   = fopen('php://stdin', 'r');
-        $this->rc_file = isset($_ENV['PHPREPLRC']) ? $_ENV['PHPREPLRC'] :
-            $_ENV['HOME'] . '/.phpreplrc';
+        $this->rc_file = getenv('PHPREPLRC') ? getenv('PHPREPLRC') :
+            getenv('HOME') . '/.phpreplrc';
 
         $defaults      = $this->defaultOptions();
         $this->options = array_merge($defaults, $options);
@@ -79,10 +79,10 @@ class PHP_Repl
         $defaults = array('prompt'        => 'php> ',
                           'autorun'       => false,
                           'readline'      => true,
-                          'readline_hist' => $_ENV['HOME'] .
+                          'readline_hist' => getenv('HOME') .
                           '/.phprepl_history');
 
-        if (!function_exists('readline') || $_ENV['TERM'] == 'dumb') {
+        if (!function_exists('readline') || getenv('TERM') == 'dumb') {
             $defaults['readline'] = false;
         }
 
