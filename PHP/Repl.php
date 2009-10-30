@@ -58,14 +58,15 @@ class PHP_Repl
 
         $defaults      = $this->defaultOptions();
         $this->options = array_merge($defaults, $options);
-        if ($this->options['autorun']) {
-            $this->run();
-        }
 
         if ($this->options['readline'] &&
             is_readable($this->options['readline_hist'])) {
             array_map('readline_add_history',
                       file($this->options['readline_hist']));
+        }
+
+        if ($this->options['autorun']) {
+            $this->run();
         }
     }
 
