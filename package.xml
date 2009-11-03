@@ -18,7 +18,7 @@
     </lead>
     <date>2009-04-21</date>
     <version>
-        <release>0.8.6dev2</release>
+        <release>0.8.6dev3</release>
         <api>0.8.6</api>
     </version>
     <stability>
@@ -41,7 +41,7 @@
                     <tasks:replace from="@package_version@" to="version"
                                    type="package-info"/>
 
-                </file>)
+                </file>
             </dir>
             <dir name="scripts">
                 <file name="php-repl" role="script" install-as="php-repl"
