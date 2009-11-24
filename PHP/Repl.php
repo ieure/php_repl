@@ -131,8 +131,7 @@ class PHP_Repl
         ob_start();
         while (true) {
             // inner loop is to escape from stacked output buffers
-            while ($c = ob_get_contents() ) {
-                ob_end_clean();
+            while ($c = ob_get_clean() ) {
                 echo $c;
             }
 
