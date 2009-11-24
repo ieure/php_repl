@@ -239,9 +239,16 @@ class PHP_Repl
             $input .= ';';
         }
 
+        // determine if the input contains multiple statements
+        // e.g. $a=1;$a=2;
+        $tokens = array_count_values(array_filter(
+                        token_get_all("<?php {$input}"), 'is_scalar'));
+        $multi = isset($tokens[';']) && $tokens[';'] > 1;
+
         // Make sure we get a value back from eval()
+        // but if input contains a semi-colon
         $first = substr($input, 0, strpos($input, " "));
-        if (!in_array($first, $implicit)) {
+        if (!in_array($first, $implicit) && !$multi) {
             $input = 'return ' . $input;
         }
 
