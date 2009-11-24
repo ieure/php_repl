@@ -227,7 +227,11 @@ class PHP_Repl
                 $input = $last;
             }
 
-            if (substr($input, 0, 1) != '$') {
+            // if the input string contains anything but a single variable,
+            // wrap it in single-quotes
+            $tokens = token_get_all(rtrim("<php {$input}", "\t ;"));
+            if (!(count($tokens) == 2 && isset($tokens[1][0]) &&
+                    $tokens[1][0] = T_VARIABLE)) {
                 $input = "'$input'";
             }
             return $this->cleanup("\$this->{$sugar[$m]}($input)");
@@ -381,8 +385,12 @@ class PHP_Repl
      */
     protected function doc($thing)
     {
-        echo preg_replace('/^\s*\*/m', ' *',
-                          $this->getReflection($thing)->getDocComment()) . "\n";
+        if ($r = $this->getReflection($thing)) {
+            echo preg_replace('/^\s*\*/m', ' *',
+                          $r->getDocComment()) . "\n";
+        } else {
+            echo "(no doc)\n";
+        }
         return "---";
     }
 }
