@@ -157,9 +157,17 @@ class PHP_Repl
         $code  = '';
         $done  = false;
         $lines = 0;
+        static $shifted;
+        if (!$shifted) {
+            // throw away argv[0]
+            array_shift($_SERVER['argv']);
+            $shifted = true;
+        }
         do {
             $prompt = $lines > 0 ? '> ' : $this->options['prompt'];
-            if ($this->options['readline']) {
+            if (count($_SERVER['argv'])) {
+                $line = array_shift($_SERVER['argv']);
+            } elseif ($this->options['readline']) {
                 $line = readline($prompt);
             } else {
                 echo $prompt;
