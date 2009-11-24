@@ -61,9 +61,7 @@ class PHP_Repl
 
         if ($this->options['readline'] &&
             is_readable($this->options['readline_hist'])) {
-            array_map('readline_add_history',
-                      file($this->options['readline_hist'], 
-                           FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES));
+            readline_read_history($this->options['readline_hist']);
         }
 
         if ($this->options['autorun']) {
