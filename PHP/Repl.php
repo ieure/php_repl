@@ -130,8 +130,11 @@ class PHP_Repl
     {
         ob_start();
         while (true) {
-            ob_flush();
-            ob_end_clean();
+            // inner loop is to escape from stacked output buffers
+            while ($c = ob_get_contents() ) {
+                ob_end_clean();
+                echo $c;
+            }
 
             try {
                 if (((boolean) $__code__ = $this->read()) === false) {
