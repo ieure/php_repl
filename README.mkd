@@ -127,6 +127,41 @@ As mentioned, input is slightly altered before it is evaluated. Since this may p
     'return 5+5;'
 
 
+Reuse
+=====
+You can reuse PHP_Repl in your own projects.
+
+    require_once 'PHP/Repl.php';
+
+    function do_stuff()
+    {
+        if ($debug_condition) {
+            $repl = new PHP_Repl();
+            $repl->run();
+        }
+    }
+
+The REPL will have access to whatever scope your function does. If you invoke it from an objet method, be aware that `$this` is always the PHP_Repl instance, not your object.
+
+
+Passing Scope
+-------------
+
+If you would like to pass additional variables into the REPL’s scope, you may include them in an array passed to run().
+
+    require_once 'PHP/Repl.php';
+
+    class StuffDoer {
+        function do_stuff()
+        {
+            if ($debug_condition) {
+                $repl = new PHP_Repl();
+                $repl->run(array('_caller' => $this));
+            }
+        }
+    }
+
+
 Configuration
 =============
 PHP_Repl stores it’s configuration in `$HOME/.phpreplrc`. A default file will be created for you if none exists. Any options you set while the REPL is running will be written out when you quit it.

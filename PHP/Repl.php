@@ -113,10 +113,13 @@ class PHP_Repl
     /**
      * Run the main loop
      *
+     * @param array $scope Scope to pass into the REPL.
+     *
      * @return void
      */
-    public function run()
+    public function run(array $scope = array())
     {
+        extract($scope);
         ob_start();
         while (true) {
             // inner loop is to escape from stacked output buffers
