@@ -207,10 +207,10 @@ class PHP_Repl
      */
     private function cleanup($input)
     {
-        static $implicit = array('return', 'throw', 'class', 'function',
-                                 'interface', 'abstract', 'static', 'echo',
-                                 'include', 'include_once', 'require',
-                                 'require_once');
+        static $implicit = array(T_RETURN, T_THROW, T_CLASS, T_FUNCTION,
+                                 T_INTERFACE, T_ABSTRACT, T_STATIC, T_ECHO,
+                                 T_INCLUDE, T_INCLUDE_ONCE, T_REQUIRE,
+                                 T_REQUIRE_ONCE, T_TRY, ';');
         static $sugar    = array(',' => 'dissect',
                                  'd' => 'doc',
                                  'l' => 'dir',
@@ -259,10 +259,18 @@ class PHP_Repl
             ++$semicount;
             $input .= ';';
         }
+        // grab the "first" token's value
+        if (isset($tokens[1])) {
+            if (is_array($tokens[1])) {
+                $first = $tokens[1][0];
+            } else {
+                $first = $tokens[1];
+            }
+        } else {
+            $first = null;
+        }
 
         // Make sure we get a value back from eval()
-        // but if input contains a semi-colon
-        $first = substr($input, 0, strpos($input, " "));
         if (!in_array($first, $implicit) && (1 === $semicount)) {
             $input = 'return ' . $input;
         }
