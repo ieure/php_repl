@@ -286,6 +286,8 @@ class PHP_Repl
         $type = gettype($out);
         switch ($type) {
         case 'NULL':
+            break;
+
         case 'double':
         case 'float':
         case 'integer':
