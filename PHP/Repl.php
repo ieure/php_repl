@@ -232,7 +232,7 @@ class PHP_Repl
             // wrap it in single-quotes
             if (!(count($tokens) == 2 && isset($tokens[1][0]) &&
                     $tokens[1][0] = T_VARIABLE)) {
-                $input = "'$input'";
+                $input = "'". str_replace("'", "\\'", $input) . "'";
             }
             return $this->cleanup("\$this->{$sugar[$m]}($input)");
         }
