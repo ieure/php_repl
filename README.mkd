@@ -141,7 +141,7 @@ You can reuse PHP_Repl in your own projects.
         }
     }
 
-The REPL will have access to whatever scope your function does. If you invoke it from an objet method, be aware that `$this` is always the PHP_Repl instance, not your object.
+The REPL will have access to whatever scope your function does. If you invoke it from an object method, be aware that `$this` is always the PHP_Repl instance, not your object.
 
 
 Passing Scope
