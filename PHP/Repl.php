@@ -215,6 +215,7 @@ class PHP_Repl
                                  'd' => 'doc',
                                  'l' => 'dir',
                                  'e' => 'cleanup');
+        static $strip = array(T_COMMENT, T_DOC_COMMENT);
         static $last;
 
         $input = trim($input);
@@ -237,21 +238,32 @@ class PHP_Repl
             return $this->cleanup("\$this->{$sugar[$m]}($input)");
         }
 
-
-        // Add a trailing semicolon
-        if (substr($input, -1) != ';') {
+        // drop comments, add trailing semicolon (recreate input)
+        $semicount = 0;
+        $input = '';
+        // skip the first token (T_OPEN_TAG)
+        for ($i = 1, $ii = count($tokens); $i < $ii; $i++) {
+            if (is_array($tokens[$i])) {
+                if (!in_array($tokens[$i][0], $strip)) {
+                    $input .= $tokens[$i][1]; // token value
+                }
+            } else {
+                if (';' === $tokens[$i]) {
+                    ++$semicount;
+                }
+                $input .= $tokens[$i]; // token _is_ value
+            }
+        }
+        if (';' !== $tokens[$i-1]) {
+            // Add a trailing semicolon if the last token is not one already
+            ++$semicount;
             $input .= ';';
         }
-
-        // determine if the input contains multiple statements
-        // e.g. $a=1;$a=2;
-        $semis = array_count_values(array_filter($tokens, 'is_scalar'));
-        $multi = isset($semis[';']) && $semis[';'] > 0;
 
         // Make sure we get a value back from eval()
         // but if input contains a semi-colon
         $first = substr($input, 0, strpos($input, " "));
-        if (!in_array($first, $implicit) && !$multi) {
+        if (!in_array($first, $implicit) && (1 === $semicount)) {
             $input = 'return ' . $input;
         }
 
