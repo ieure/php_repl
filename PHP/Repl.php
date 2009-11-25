@@ -218,6 +218,7 @@ class PHP_Repl
         static $last;
 
         $input = trim($input);
+        $tokens = token_get_all("<?php {$input}");
 
         // Sugar
         if (substr($input, 0, 1) == ',' &&
@@ -229,7 +230,6 @@ class PHP_Repl
 
             // if the input string contains anything but a single variable,
             // wrap it in single-quotes
-            $tokens = token_get_all(rtrim("<php {$input}", "\t ;"));
             if (!(count($tokens) == 2 && isset($tokens[1][0]) &&
                     $tokens[1][0] = T_VARIABLE)) {
                 $input = "'$input'";
@@ -245,9 +245,8 @@ class PHP_Repl
 
         // determine if the input contains multiple statements
         // e.g. $a=1;$a=2;
-        $tokens = array_count_values(array_filter(
-                        token_get_all("<?php {$input}"), 'is_scalar'));
-        $multi = isset($tokens[';']) && $tokens[';'] > 1;
+        $semis = array_count_values(array_filter($tokens, 'is_scalar'));
+        $multi = isset($semis[';']) && $semis[';'] > 0;
 
         // Make sure we get a value back from eval()
         // but if input contains a semi-colon
