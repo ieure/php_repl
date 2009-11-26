@@ -362,6 +362,9 @@ class PHP_Repl
             case $rc->hasConstant($what):
                 return $rc->getConstant($what);
             }
+
+        case is_string($thing):
+            return var_export($thing) . "\n";
         }
     }
 
