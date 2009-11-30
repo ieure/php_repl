@@ -1,4 +1,4 @@
-#! @php_bin@
+#!/usr/bin/env php
 <?php // -*- mode: php -*-
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
