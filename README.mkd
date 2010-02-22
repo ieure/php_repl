@@ -55,7 +55,7 @@ Uncaught Exceptions are caught and dumped:
 
 If an exception is caught, it’s stored in `$_`, since there won’t be a meaningful return value from the executed code.
 
-If the last character of the entered line is a backslash (`\`), the REPL will accumulate lines until a line not ending in a backslash is found; the block of lines will then be evaluated. When the REPL is accumulating lines, the prompt changes to `> `.
+If the last character of the entered line is a backslash (`\\`), the REPL will accumulate lines until a line not ending in a backslash is found; the block of lines will then be evaluated. When the REPL is accumulating lines, the prompt changes to `> `.
 
     php> $foo = array('one', \
     > 'two', \
