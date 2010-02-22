@@ -67,7 +67,7 @@ If the last character of the entered line is a backslash, the REPL will accumula
     )
     php>
 
-Certain aspects of the input are altered before the code is evaluated. For example, `return` is prepended for most expressions, a semicolon is added if it was omitted, and so on. See /Expansion/, below.
+Certain aspects of the input are altered before the code is evaluated. For example, `return` is prepended for most expressions, a semicolon is added if it was omitted, and so on. See *Expansion*, below.
 
 When you’re done with the REPL, you can send `^D`, `die`, or `exit` to quit.
 
