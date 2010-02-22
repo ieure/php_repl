@@ -73,7 +73,7 @@ When you’re done with the REPL, you can send `^D`, `die`, or `exit` to quit.
 
 Sugar
 =====
-There are a few features to make your life easier. Sugar commands run method in the REPL code to help you examine your code. They’re two characters, the first of which is always a comma, followed by a thing to examine.
+There are a few features to make your life easier. Sugar commands run a method in the REPL code to help you examine your code. They’re two characters, the first of which is always a comma, followed by a thing to examine.
 
 Documentation
 -------------
