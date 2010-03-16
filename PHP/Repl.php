@@ -124,13 +124,13 @@ class PHP_Repl
         while (true) {
             // inner loop is to escape from stacked output buffers
             while ($__ob__ = ob_get_clean() ) {
-                echo $__ob__;
+                echo $this->ob_cleanup($__ob__);
                 unset($__ob__);
             }
 
             try {
                 if (((boolean) $__code__ = $this->read()) === false) {
-                    break;
+                    continue;
                 }
                 ob_start(array($this, 'ob_cleanup'));
                 ob_implicit_flush(true);
