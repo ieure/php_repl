@@ -154,11 +154,10 @@ class PHP_Repl
      */
     private function read()
     {
-        $code    = '';
-        $done    = false;
-        $lines   = 0;
-        $curleys = 0;
-        $parens  = 0;
+        $code  = '';
+        $done  = false;
+        $lines = 0;
+        $stack = array();
         static $shifted;
         if (!$shifted) {
             // throw away argv[0]
@@ -195,22 +194,30 @@ class PHP_Repl
             foreach ($tokens as $t) {
                 switch ($t) {
                     case '{':
-                        ++$curleys;
-                        break;
-                    case '}':
-                        --$curleys;
-                        break;
                     case '(':
-                        ++$parens;
+                        array_push($stack, $t);
+                        break;
+                    
+                    case '}':
+                        if ('{' !== array_pop($stack)) {
+                            throw new Exception('Unmatched closing brace.');
+                        }
                         break;
                     case ')':
-                        --$parens;
+                        if ('(' !== array_pop($stack)) {
+                            throw new Exception('Unmatched closing paren.');
+                        }
                         break;
                 }
             }
-            if ($curleys > 0) {
-                $done = false;
-            } else if ($parens > 0) {
+            if (count($stack) > 0) {
+                $last_t = array_pop($tokens);
+                if (is_array($last_t) && $last_t[0] == T_OPEN_TAG) {
+                    // if the last token was an open tag, this is nothing.
+                } else if ($stack[count($stack) - 1] === '{' && !in_array($last_t, array('{', '}', ';'))) {
+                    // allow implied semicolons inside curlies
+                    $line .= ';';
+                }
                 $done = false;
             }
             $code .= $line;
