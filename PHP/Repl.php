@@ -154,9 +154,11 @@ class PHP_Repl
      */
     private function read()
     {
-        $code  = '';
-        $done  = false;
-        $lines = 0;
+        $code    = '';
+        $done    = false;
+        $lines   = 0;
+        $curleys = 0;
+        $parens  = 0;
         static $shifted;
         if (!$shifted) {
             // throw away argv[0]
@@ -179,13 +181,37 @@ class PHP_Repl
                 return false;
             }
 
+            $done = true;
             $line = trim($line);
             // If the last char is a backslash, remove it and
             // accumulate more lines.
             if (substr($line, -1) == '\\') {
-                $line = substr($line, 0, strlen($line) - 1);
-            } else {
-                $done = true;
+                $line = trim(substr($line, 0, strlen($line) - 1));
+                $done = false;
+            }
+
+            // check for curleys and parens, keep accumulating lines.
+            $tokens = token_get_all("<?php {$line}");
+            foreach ($tokens as $t) {
+                switch ($t) {
+                    case '{':
+                        ++$curleys;
+                        break;
+                    case '}':
+                        --$curleys;
+                        break;
+                    case '(':
+                        ++$parens;
+                        break;
+                    case ')':
+                        --$parens;
+                        break;
+                }
+            }
+            if ($curleys > 0) {
+                $done = false;
+            } else if ($parens > 0) {
+                $done = false;
             }
             $code .= $line;
             $lines++;
