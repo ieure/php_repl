@@ -70,9 +70,7 @@
   (interactive "p")
   (let ((buf (cond ((buffer-live-p inferior-php-buffer) inferior-php-buffer)
                    (t (generate-new-buffer "*inferior-php*")))))
-    (make-comint-in-buffer
-     "PHP" buf php-repl-program nil
-     (mapconcat 'identity php-repl-program-arguments " "))
+    (apply 'make-comint-in-buffer "PHP" buf php-repl-program nil php-repl-program-arguments)
     (setq inferior-php-buffer buf)
     (display-buffer buf t)
     (pop-to-buffer buf t)
