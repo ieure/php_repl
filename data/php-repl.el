@@ -71,9 +71,9 @@
   (let ((buf (cond ((buffer-live-p inferior-php-buffer) inferior-php-buffer)
                    (t (generate-new-buffer "*inferior-php*")))))
     (apply 'make-comint-in-buffer "PHP" buf php-repl-program nil php-repl-program-arguments)
+    (setq inferior-php-buffer buf)
     (set-process-sentinel
      (get-buffer-process inferior-php-buffer) 'run-php-process-sentinel)
-    (setq inferior-php-buffer buf)
     (display-buffer buf t)
     (pop-to-buffer buf t)
     (inferior-php-mode)))
