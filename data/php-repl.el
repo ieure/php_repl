@@ -71,10 +71,18 @@
   (let ((buf (cond ((buffer-live-p inferior-php-buffer) inferior-php-buffer)
                    (t (generate-new-buffer "*inferior-php*")))))
     (apply 'make-comint-in-buffer "PHP" buf php-repl-program nil php-repl-program-arguments)
+    (set-process-sentinel
+     (get-buffer-process inferior-php-buffer) 'run-php-process-sentinel)
     (setq inferior-php-buffer buf)
     (display-buffer buf t)
     (pop-to-buffer buf t)
     (inferior-php-mode)))
+
+(defun run-php-process-sentinel (process event)
+  "*Restart PHP process after abnormal exit."
+  (when (string-match-p "^exited abnormally with code" event)
+    (message "Restarting PHP process")
+    (run-php)))
 
 (define-derived-mode inferior-php-mode comint-mode "Inferior PHP")
 (defvar inferior-php-mode-abbrev-table
