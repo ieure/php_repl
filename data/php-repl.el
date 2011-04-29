@@ -74,8 +74,9 @@
     (setq inferior-php-buffer buf)
     (set-process-sentinel
      (get-buffer-process inferior-php-buffer) 'run-php-process-sentinel)
-    (display-buffer buf t)
-    (pop-to-buffer buf t)
+    (unless (eq (current-buffer) inferior-php-buffer)
+      (display-buffer buf t)
+      (pop-to-buffer buf t))
     (inferior-php-mode)))
 
 (defun run-php-process-sentinel (process event)
