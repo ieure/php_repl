@@ -120,7 +120,7 @@
   (save-excursion
     (comint-send-region inferior-php-buffer start end)
     (if (not (string-match "\n$" (buffer-substring start end)))
-        (comint-send-string sql-buffer "\n"))
+        (comint-send-string inferior-php-buffer "\n"))
     (display-buffer inferior-php-buffer))))
 
 (defun php-eval-sexp ())
