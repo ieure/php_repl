@@ -43,7 +43,7 @@
 
 (defgroup php-repl nil
   "Major mode for interacting with an inferior PHP interpreter."
-  :prefix "ph-repl-"
+  :prefix "php-repl-"
   :group 'php)
 
 (defcustom php-repl-program
