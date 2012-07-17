@@ -16,6 +16,12 @@
  * @filesource
  */
 
+// Add environment variable PHP_INCLUDE_PATH to include_path if it exists.
+$includePath = getenv('PHP_INCLUDE_PATH');
+if ($includePath !== false) {
+    set_include_path(get_include_path().':'.getenv('PHP_INCLUDE_PATH'));
+}
+
 require_once 'PHP/Repl.php';
 $__repl__ = new PHP_Repl();
 $__repl__->run();
