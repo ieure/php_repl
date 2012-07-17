@@ -56,6 +56,11 @@
   "Arguments for the PHP program."
   :type '(repeat string))
 
+(defcustom php-repl-echo-add-newline nil
+  "Whether tp have an extra newline added after echo/print
+statments so that the prompt will reappear on its own line."
+  :type 'boolean)
+
 (defcustom php-use-eval-php-mode nil
   "Whether to enable php-eval-mode for PHP buffers."
   :type 'boolean
@@ -77,7 +82,10 @@
     (unless (eq (current-buffer) inferior-php-buffer)
       (display-buffer buf t)
       (pop-to-buffer buf t))
-    (inferior-php-mode)))
+    (inferior-php-mode)
+    (set (make-local-variable 'comint-prompt-regexp) "^php> ")
+    (set (make-local-variable 'comint-use-prompt-regexp) t)
+    (set (make-local-variable 'comint-eol-on-send) t)))
 
 (defun run-php-process-sentinel (process event)
   "*Restart PHP process after abnormal exit."
@@ -115,17 +123,31 @@
 (defun php-send-region (start end)
   "Send a region to the inferior PHP process."
   (interactive "r")
-  (if (not (buffer-live-p inferior-php-buffer))
-      (run-php))
+  (unless (and (buffer-live-p inferior-php-buffer)
+               (get-buffer-process inferior-php-buffer))
+    (save-excursion (run-php)))
   (save-excursion
-    (comint-send-region inferior-php-buffer start end)
-    (if (not (string-match "\n$" (buffer-substring start end)))
-        (comint-send-string inferior-php-buffer "\n"))
-    (display-buffer inferior-php-buffer))))
+    (let ((cmd-string (replace-regexp-in-string 
+                       "\n" "" 
+                       (buffer-substring-no-properties start end))))
+      (comint-simple-send inferior-php-buffer cmd-string)
+      (when php-repl-echo-add-newline (php-repl-echo-add-newline))
+      (display-buffer inferior-php-buffer))))
 
 (defun php-eval-sexp ())
 (defun php-eval-expression ())
 (defun php-eval-buffer ())
 (defun php-eval-line ())
+
+(defun php-repl-echo-add-newline ()
+  (with-current-buffer inferior-php-buffer
+    (sit-for .01)
+    (comint-next-prompt 1)
+    (save-match-data
+      (when (and (not (looking-back-p comint-prompt-regexp))
+                 (looking-back (substring comint-prompt-regexp 1)))
+        (goto-char (match-beginning 0))
+        (newline)
+        (end-of-line)))))
 
 (provide 'php-repl)
