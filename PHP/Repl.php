@@ -88,6 +88,17 @@ class PHP_Repl
     }
 
     /**
+     * Set options
+     *
+     * @param array $options An array of options for use in the REPL
+     *
+     */
+    private function setOptions(array $options)
+    {
+        $this->options = array_merge($this->options, $options);
+    }
+
+    /**
      * Destructor
      *
      * @return void
