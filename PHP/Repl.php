@@ -135,13 +135,13 @@ class PHP_Repl
         while (true) {
             // inner loop is to escape from stacked output buffers
             while ($__ob__ = ob_get_clean() ) {
-                echo $__ob__;
+                echo $this->ob_cleanup($__ob__);
                 unset($__ob__);
             }
 
             try {
                 if (((boolean) $__code__ = $this->read()) === false) {
-                    break;
+                    continue;
                 }
                 ob_start(array($this, 'ob_cleanup'));
                 ob_implicit_flush(true);
@@ -168,6 +168,7 @@ class PHP_Repl
         $code  = '';
         $done  = false;
         $lines = 0;
+        $stack = array();
         static $shifted;
         if (!$shifted) {
             // throw away argv[0]
@@ -190,13 +191,45 @@ class PHP_Repl
                 return false;
             }
 
+            $done = true;
             $line = trim($line);
             // If the last char is a backslash, remove it and
             // accumulate more lines.
             if (substr($line, -1) == '\\') {
-                $line = substr($line, 0, strlen($line) - 1);
-            } else {
-                $done = true;
+                $line = trim(substr($line, 0, strlen($line) - 1));
+                $done = false;
+            }
+
+            // check for curleys and parens, keep accumulating lines.
+            $tokens = token_get_all("<?php {$line}");
+            foreach ($tokens as $t) {
+                switch ($t) {
+                    case '{':
+                    case '(':
+                        array_push($stack, $t);
+                        break;
+                    
+                    case '}':
+                        if ('{' !== array_pop($stack)) {
+                            throw new Exception('Unmatched closing brace.');
+                        }
+                        break;
+                    case ')':
+                        if ('(' !== array_pop($stack)) {
+                            throw new Exception('Unmatched closing paren.');
+                        }
+                        break;
+                }
+            }
+            if (count($stack) > 0) {
+                $last_t = array_pop($tokens);
+                if (is_array($last_t) && $last_t[0] == T_OPEN_TAG) {
+                    // if the last token was an open tag, this is nothing.
+                } else if ($stack[count($stack) - 1] === '{' && !in_array($last_t, array('{', '}', ';'))) {
+                    // allow implied semicolons inside curlies
+                    $line .= ';';
+                }
+                $done = false;
             }
             $code .= $line;
             $lines++;
