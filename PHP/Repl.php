@@ -73,6 +73,7 @@ class PHP_Repl
     private function defaultOptions()
     {
         $defaults = array('prompt'        => 'php> ',
+                          'showtime'      => false,
                           'readline'      => true,
                           'readline_hist' => getenv('HOME') .
                           '/.phprepl_history');
@@ -176,7 +177,7 @@ class PHP_Repl
             $shifted = true;
         }
         do {
-            $prompt = $lines > 0 ? '> ' : $this->options['prompt'];
+            $prompt = $lines > 0 ? '> ' : ($this->options['showtime'] ? date('G:i:s ') : '') . $this->options['prompt'];
             if (count($_SERVER['argv'])) {
                 $line = array_shift($_SERVER['argv']);
             } elseif ($this->options['readline']) {
@@ -208,7 +209,7 @@ class PHP_Repl
                     case '(':
                         array_push($stack, $t);
                         break;
-                    
+
                     case '}':
                         if ('{' !== array_pop($stack)) {
                             throw new Exception('Unmatched closing brace.');
@@ -359,9 +360,11 @@ class PHP_Repl
             break;
 
         case 'string':
+	    var_export($out);
+	    echo "\n";
+	    break;
         case 'array':
-            var_export($out);
-            echo "\n";
+            print_r($out);
             break;
 
         default:
