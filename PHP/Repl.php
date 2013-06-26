@@ -59,7 +59,12 @@ class PHP_Repl
         $defaults      = $this->defaultOptions();
         $this->options = array_merge($defaults, $options);
 
-        if ($this->options['readline'] &&
+        $this->readline_support = true;
+        if (!function_exists('readline') || getenv('TERM') == 'dumb') {
+            $this->readline_support = false;
+        }
+
+        if ($this->readline_support &&
             is_readable($this->options['readline_hist'])) {
             readline_read_history($this->options['readline_hist']);
         }
@@ -74,13 +79,8 @@ class PHP_Repl
     {
         $defaults = array('prompt'        => 'php> ',
                           'showtime'      => false,
-                          'readline'      => true,
                           'readline_hist' => getenv('HOME') .
                           '/.phprepl_history');
-
-        if (!function_exists('readline') || getenv('TERM') == 'dumb') {
-            $defaults['readline'] = false;
-        }
 
         if (is_readable($this->rc_file)) {
             $defaults = array_merge($defaults, parse_ini_file($this->rc_file));
@@ -107,7 +107,7 @@ class PHP_Repl
     public function __destruct()
     {
         fclose($this->input);
-        if ($this->options['readline']) {
+        if ($this->readline_support) {
             readline_write_history($this->options['readline_hist']);
         }
 
@@ -180,7 +180,7 @@ class PHP_Repl
             $prompt = $lines > 0 ? '> ' : ($this->options['showtime'] ? date('G:i:s ') : '') . $this->options['prompt'];
             if (count($_SERVER['argv'])) {
                 $line = array_shift($_SERVER['argv']);
-            } elseif ($this->options['readline']) {
+            } elseif ($this->readline_support) {
                 $line = readline($prompt);
             } else {
                 echo $prompt;
@@ -237,7 +237,7 @@ class PHP_Repl
         } while (!$done);
 
         // Add the whole block to the readline history.
-        if ($this->options['readline']) {
+        if ($this->readline_support) {
             readline_add_history($code);
         }
         return $code;
