@@ -5,14 +5,17 @@ PHP_Repl is a read-eval-print loop for PHP, written in PHP. It aims to be light,
 Installation
 ============
 
-    $ git clone git://github.com/ieure/php_repl.git
-    $ cd php_repl
-    $ pear package
-    $ pear install PHP_Repl*tgz
+The library is available through Composer, so its easy to get it. Simply add this to your `composer.json` file:
+
+    "require": {
+        "pmeth/php_repl": "dev-master"
+    }
+    
+And run `composer install`
 
 Usage
 =====
-When you fire up PHP_Repl, you’re greeted with a prompt:
+When you fire up PHPRepl, you’re greeted with a prompt:
 
     php>
 
@@ -129,9 +132,9 @@ As mentioned, input is slightly altered before it is evaluated. Since this may p
 
 Reuse
 =====
-You can reuse PHP_Repl in your own projects.
+You can reuse PHPRepl in your own projects.
 
-    require_once 'PHP/Repl.php';
+    require_once 'PHPRepl.php';
 
     function do_stuff()
     {
@@ -141,7 +144,7 @@ You can reuse PHP_Repl in your own projects.
         }
     }
 
-The REPL will have access to whatever scope your function does. If you invoke it from an object method, be aware that `$this` is always the PHP_Repl instance, not your object.
+The REPL will have access to whatever scope your function does. If you invoke it from an object method, be aware that `$this` is always the PHPRepl instance, not your object.
 
 
 Passing Scope
@@ -149,7 +152,7 @@ Passing Scope
 
 If you would like to pass additional variables into the REPL’s scope, you may include them in an array passed to run().
 
-    require_once 'PHP/Repl.php';
+    require_once 'PHPRepl.php';
 
     class StuffDoer {
         function do_stuff()
@@ -164,7 +167,7 @@ If you would like to pass additional variables into the REPL’s scope, you may 
 
 Configuration
 =============
-PHP_Repl stores its configuration in `$HOME/.phpreplrc`. A default file will be created for you if none exists. Any options you set while the REPL is running will be written out when you quit it.
+PHPRepl stores its configuration in `$HOME/.phpreplrc`. A default file will be created for you if none exists. Any options you set while the REPL is running will be written out when you quit it.
 
 The following options are recognized:
 
@@ -186,24 +189,6 @@ Dangers
     5. `ob_implicit_flush`. Always on.
     6. The output buffer’s callback method.
 
-
-Emacs Integration
-=================
-Because I really like Emacs, and enjoy the integration other languages (e.g. Common Lisp, Python, etc) have with it, I put together `phprepl.el`. It’s incomplete and may be buggy.
-
-It provides `run-php`, which will fire up the PHP REPL of your choice (not just PHP_Repl, it should work with any interactive PHP tool). It has the beginnings of a minor-mode to send regions, buffers, etc to the REPL for evaluation, but this isn’t finished yet.
-
-Installation
-------------
-Drop `php-repl.el` somewhere in your `load-path` and `(require 'php-repl)`.
-
-Configuration
--------------
-It’s customizable; `M-x customize-group RET phprepl RET`. Point `php-repl-program` at `PHP/Repl.php`.
-
-Usage
------
-`M-x run-php` will fire PHP_Repl up in a `*php*` buffer. Type and be happy.
 
 
 Alternatives
