@@ -19,7 +19,7 @@
 
     "autoload": {
         "psr-0": {
-            "PHP_Repl": "src/"
+            "PHPRepl": "src/"
         }
     }
 }

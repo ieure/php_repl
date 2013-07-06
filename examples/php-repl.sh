@@ -22,8 +22,8 @@ if ($includePath !== false) {
     set_include_path(get_include_path().':'.getenv('PHP_INCLUDE_PATH'));
 }
 
-require_once __DIR__ . '/../src/PHP_Repl/PHP_Repl.php';
-$__repl__ = new \PHP_Repl\PHP_Repl();
+require_once __DIR__ . '/../src/PHPRepl/PHPRepl.php';
+$__repl__ = new \PHPRepl\PHPRepl();
 $__repl__->run();
 
 ?>

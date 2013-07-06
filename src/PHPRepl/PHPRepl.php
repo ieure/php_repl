@@ -1,6 +1,6 @@
 <?php
 
-namespace PHP_Repl;
+namespace PHPRepl;
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
 /**
@@ -22,7 +22,7 @@ namespace PHP_Repl;
  * @author     Ian Eure <ieure@php.net>
  * @version    @package_version@
  */
-class PHP_Repl
+class PHPRepl
 {
     /**
      * Where we're reading input from

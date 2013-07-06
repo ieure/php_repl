@@ -1,6 +1,6 @@
 <?php
 
-use PHP_Repl\PHP_Repl;
+use PHPRepl\PHPRepl;
 
 require __DIR__ . '/../vendor/autoload.php';
 
