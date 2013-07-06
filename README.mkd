@@ -1,6 +1,6 @@
-What is PHP_Repl?
+What is PHPRepl?
 =================
-PHP_Repl is a read-eval-print loop for PHP, written in PHP. It aims to be light, clean, modern, object-oriented, and to leverage the existing features of PHP wherever possible.
+PHPRepl is a read-eval-print loop for PHP, written in PHP. It aims to be light, clean, modern, object-oriented, and to leverage the existing features of PHP wherever possible.
 
 Installation
 ============
@@ -51,8 +51,8 @@ Uncaught Exceptions are caught and dumped:
     exception 'Exception' with message 'Test 123' in /Users/ieure/Projects/php_repl/PHP/Repl.php(143) : eval()'d code:1
     Stack trace:
     #0 /Users/ieure/Projects/php_repl/PHP/Repl.php(143): eval()
-    #1 /Users/ieure/Projects/php_repl/PHP/Repl.php(62): PHP_Repl->run()
-    #2 /Users/ieure/Projects/php_repl/testrepl(20): PHP_Repl->__construct(Array)
+    #1 /Users/ieure/Projects/php_repl/PHP/Repl.php(62): PHPRepl->run()
+    #2 /Users/ieure/Projects/php_repl/testrepl(20): PHPRepl->__construct(Array)
     #3 {main}
     php>
 
@@ -82,16 +82,16 @@ Documentation
 -------------
 Doc blocks can be accessed with `,d`:
 
-    php> ,d PHP_Repl
+    php> ,d PHPRepl
     /**
-     * PHP_Repl
+     * PHPRepl
      *
-     * @package    PHP_Repl
+     * @package    PHPRepl
      * @author     Ian Eure <ieure@php.net>
      * @version    @package_version@
      */
     '---'
-    php> ,d PHP_Repl::read
+    php> ,d PHPRepl::read
     /**
      * Read input
      *
@@ -139,7 +139,7 @@ You can reuse PHPRepl in your own projects.
     function do_stuff()
     {
         if ($debug_condition) {
-            $repl = new PHP_Repl();
+            $repl = new PHPRepl();
             $repl->run();
         }
     }
@@ -158,7 +158,7 @@ If you would like to pass additional variables into the REPL’s scope, you may 
         function do_stuff()
         {
             if ($debug_condition) {
-                $repl = new PHP_Repl();
+                $repl = new PHPRepl();
                 $repl->run(array('_caller' => $this));
             }
         }
@@ -179,9 +179,9 @@ The following options are recognized:
 Dangers
 =======
 
- 1. The evaluated code is run in the same process as PHP_Repl, so if you evaluate something which causes a fatal error, PHP_Repl will terminate. Sorry.
+ 1. The evaluated code is run in the same process as PHPRepl, so if you evaluate something which causes a fatal error, PHPRepl will terminate. Sorry.
  2. Output buffering is used to capture anything printed by eval’d code. If you have code which produces output over a long period of time, you may not see the results right away. Use `flush()`.
- 3. Certain settings are enforced by PHP_Repl. You can’t change the values of:
+ 3. Certain settings are enforced by PHPRepl. You can’t change the values of:
     1. `display_errors`. It’s always on.
     2. `html_errors`. Always off.
     3. `error_reporting`. Always `E_ALL | E_STRICT`.

@@ -4,7 +4,7 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
 /**
- * Wrapper script for invoking PHP_Repl
+ * Wrapper script for invoking PHPRepl
  *
  * PHP version 5
  *
