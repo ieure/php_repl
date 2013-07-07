@@ -279,8 +279,7 @@ class PHPRepl
 
             // if the input string contains anything but a single variable,
             // wrap it in single-quotes
-            if (!(count($tokens) == 2 && isset($tokens[1][0]) &&
-                    $tokens[1][0] = T_VARIABLE)) {
+            if (!(count($tokens) == 2 && isset($tokens[1][0]) && $tokens[1][0] == T_VARIABLE)) {
                 $input = "'". str_replace("'", "\\'", $input) . "'";
             }
             return $this->cleanup("\$this->{$sugar[$m]}($input)");
