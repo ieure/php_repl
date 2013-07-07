@@ -213,12 +213,12 @@ class PHPRepl
 
                     case '}':
                         if ('{' !== array_pop($stack)) {
-                            throw new Exception('Unmatched closing brace.');
+                            throw new \Exception('Unmatched closing brace.');
                         }
                         break;
                     case ')':
                         if ('(' !== array_pop($stack)) {
-                            throw new Exception('Unmatched closing paren.');
+                            throw new \Exception('Unmatched closing paren.');
                         }
                         break;
                 }
@@ -274,6 +274,8 @@ class PHPRepl
             if (empty($input)) {
                 $input = $last;
             }
+
+            $tokens = token_get_all("<?php {$input}");
 
             // if the input string contains anything but a single variable,
             // wrap it in single-quotes
@@ -384,17 +386,17 @@ class PHPRepl
     {
         switch (true) {
         case is_object($thing):
-            return new ReflectionObject($thing);
+            return new \ReflectionObject($thing);
 
         case class_exists($thing, false):
-            return new ReflectionClass($thing);
+            return new \ReflectionClass($thing);
 
         case function_exists($thing):
-            return new ReflectionFunction($thing);
+            return new \ReflectionFunction($thing);
 
         case strstr($thing, '::'):
             list($class, $what) = explode('::', $thing);
-            $rc = new ReflectionClass($class);
+            $rc = new \ReflectionClass($class);
 
             switch (true) {
             case substr($what, -2) == '()':
@@ -443,8 +445,9 @@ class PHPRepl
             echo "\${$prop->getName()}\n";
         }
         foreach ($rc->getMethods() as $meth) {
-            echo "\{$meth->getName()}()\n";
+            echo "{$meth->getName()}()\n";
         }
+
         return "---";
     }
 
