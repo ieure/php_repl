@@ -76,12 +76,23 @@ class PHPRepl
      *
      * @return array Defaults
      */
-    private function defaultOptions()
+    protected function defaultOptions()
     {
-        $defaults = array('prompt'        => 'php> ',
-                          'showtime'      => false,
-                          'readline_hist' => getenv('HOME') .
-                          '/.phprepl_history');
+        $defaults = array(
+            'prompt'        => 'php> ',
+            'showtime'      => false,
+            'readline_hist' => getenv('HOME') . '/.phprepl_history',
+            'printers'      => array(
+                'NULL'          => null,
+                'double'        => 'var_dump',
+                'float'         => 'var_dump',
+                'integer'       => 'var_dump',
+                'boolean'       => 'var_dump',
+                'string'        => array('var_export',"\n"),
+                'array'         => 'print_r',
+                '_default_'     => 'print_r',
+            ),
+        );
 
         if (is_readable($this->rc_file)) {
             $defaults = array_merge($defaults, parse_ini_file($this->rc_file));
@@ -151,7 +162,7 @@ class PHPRepl
                 ini_set('html_errors', 'Off');
                 ini_set('display_errors', 'On');
 
-                $this->_print($_ = eval($this->cleanup($__code__)));
+                $this->output($_ = eval($this->cleanup($__code__)));
             } catch (Exception $e) {
                 echo ($_ = $e) . "\n";
             }
@@ -347,31 +358,32 @@ class PHPRepl
      *
      * @return void
      */
-    private function _print($out)
+    protected function output($out)
     {
-        $type = gettype($out);
-        switch ($type) {
-        case 'NULL':
-            break;
+        $printer = $this->getPrinter(gettype($out));
+        $extra = '';
 
-        case 'double':
-        case 'float':
-        case 'integer':
-        case 'boolean':
-            var_dump($out);
-            break;
-
-        case 'string':
-	    var_export($out);
-	    echo "\n";
-	    break;
-        case 'array':
-            print_r($out);
-            break;
-
-        default:
-            print_r($out);
+        if (!$printer) {
+            return;
         }
+
+        if (is_array($printer)) {
+            $extras = $printer;
+            $printer = array_shift($extras);
+            $extra = implode('', $extras);
+        }
+
+        call_user_func($printer, $out);
+        echo $extra;
+    }
+
+    public function getPrinter($type)
+    {
+        if (isset($this->options['printers'][$type])) {
+            return $this->options['printers'][$type];
+        }
+
+        return $this->options['printers']['_default_'];;
     }
 
     /**
