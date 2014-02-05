@@ -124,6 +124,9 @@ class PHPRepl
         }
 
         // Save config
+        /* turning off for now (maybe permanently) as support for nested
+         * arrays is broken
+         *
         $fp = fopen($this->rc_file, 'w');
         if ($fp === false) {
             return;
@@ -132,6 +135,7 @@ class PHPRepl
             fwrite($fp, "$k = \"$v\"\n");
         }
         fclose($fp);
+         */
     }
 
     /**
