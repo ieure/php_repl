@@ -58,7 +58,7 @@ class PHPRepl
             getenv('HOME') . '/.phpreplrc';
 
         $defaults      = $this->defaultOptions();
-        $this->options = array_merge($defaults, $options);
+        $this->options = array_merge_recursive($defaults, $options);
 
         $this->readline_support = true;
         if (!function_exists('readline') || getenv('TERM') == 'dumb') {
@@ -147,6 +147,10 @@ class PHPRepl
      */
     public function run(array $scope = array())
     {
+        ob_implicit_flush(true);
+        error_reporting(E_ALL | E_STRICT);
+        ini_set('html_errors', 'Off');
+        ini_set('display_errors', 'On');
         extract($scope);
         ob_start();
         while (true) {
@@ -161,10 +165,6 @@ class PHPRepl
                     continue;
                 }
                 ob_start(array($this, 'ob_cleanup'));
-                ob_implicit_flush(true);
-                error_reporting(E_ALL | E_STRICT);
-                ini_set('html_errors', 'Off');
-                ini_set('display_errors', 'On');
 
                 $this->output($_ = eval($this->cleanup($__code__)));
             } catch (Exception $e) {
