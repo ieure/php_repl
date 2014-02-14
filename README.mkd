@@ -1,18 +1,21 @@
-What is PHP_Repl?
+What is PHPRepl?
 =================
-PHP_Repl is a read-eval-print loop for PHP, written in PHP. It aims to be light, clean, modern, object-oriented, and to leverage the existing features of PHP wherever possible.
+PHPRepl is a read-eval-print loop for PHP, written in PHP. It aims to be light, clean, modern, object-oriented, and to leverage the existing features of PHP wherever possible.
 
 Installation
 ============
 
-    $ git clone git://github.com/ieure/php_repl.git
-    $ cd php_repl
-    $ pear package
-    $ pear install PHP_Repl*tgz
+The library is available through Composer, so its easy to get it. Simply add this to your `composer.json` file:
+
+    "require": {
+        "pmeth/php_repl": "dev-master"
+    }
+    
+And run `composer install`
 
 Usage
 =====
-When you fire up PHP_Repl, you’re greeted with a prompt:
+When you fire up PHPRepl, you’re greeted with a prompt:
 
     php>
 
@@ -48,8 +51,8 @@ Uncaught Exceptions are caught and dumped:
     exception 'Exception' with message 'Test 123' in /Users/ieure/Projects/php_repl/PHP/Repl.php(143) : eval()'d code:1
     Stack trace:
     #0 /Users/ieure/Projects/php_repl/PHP/Repl.php(143): eval()
-    #1 /Users/ieure/Projects/php_repl/PHP/Repl.php(62): PHP_Repl->run()
-    #2 /Users/ieure/Projects/php_repl/testrepl(20): PHP_Repl->__construct(Array)
+    #1 /Users/ieure/Projects/php_repl/PHP/Repl.php(62): PHPRepl->run()
+    #2 /Users/ieure/Projects/php_repl/testrepl(20): PHPRepl->__construct(Array)
     #3 {main}
     php>
 
@@ -79,16 +82,16 @@ Documentation
 -------------
 Doc blocks can be accessed with `,d`:
 
-    php> ,d PHP_Repl
+    php> ,d PHPRepl
     /**
-     * PHP_Repl
+     * PHPRepl
      *
-     * @package    PHP_Repl
+     * @package    PHPRepl
      * @author     Ian Eure <ieure@php.net>
      * @version    @package_version@
      */
     '---'
-    php> ,d PHP_Repl::read
+    php> ,d PHPRepl::read
     /**
      * Read input
      *
@@ -129,19 +132,19 @@ As mentioned, input is slightly altered before it is evaluated. Since this may p
 
 Reuse
 =====
-You can reuse PHP_Repl in your own projects.
+You can reuse PHPRepl in your own projects.
 
-    require_once 'PHP/Repl.php';
+    require_once 'PHPRepl.php';
 
     function do_stuff()
     {
         if ($debug_condition) {
-            $repl = new PHP_Repl();
+            $repl = new PHPRepl();
             $repl->run();
         }
     }
 
-The REPL will have access to whatever scope your function does. If you invoke it from an object method, be aware that `$this` is always the PHP_Repl instance, not your object.
+The REPL will have access to whatever scope your function does. If you invoke it from an object method, be aware that `$this` is always the PHPRepl instance, not your object.
 
 
 Passing Scope
@@ -149,13 +152,13 @@ Passing Scope
 
 If you would like to pass additional variables into the REPL’s scope, you may include them in an array passed to run().
 
-    require_once 'PHP/Repl.php';
+    require_once 'PHPRepl.php';
 
     class StuffDoer {
         function do_stuff()
         {
             if ($debug_condition) {
-                $repl = new PHP_Repl();
+                $repl = new PHPRepl();
                 $repl->run(array('_caller' => $this));
             }
         }
@@ -164,7 +167,7 @@ If you would like to pass additional variables into the REPL’s scope, you may 
 
 Configuration
 =============
-PHP_Repl stores its configuration in `$HOME/.phpreplrc`. A default file will be created for you if none exists. Any options you set while the REPL is running will be written out when you quit it.
+PHPRepl stores its configuration in `$HOME/.phpreplrc`. A default file will be created for you if none exists. Any options you set while the REPL is running will be written out when you quit it.
 
 The following options are recognized:
 
@@ -176,9 +179,9 @@ The following options are recognized:
 Dangers
 =======
 
- 1. The evaluated code is run in the same process as PHP_Repl, so if you evaluate something which causes a fatal error, PHP_Repl will terminate. Sorry.
+ 1. The evaluated code is run in the same process as PHPRepl, so if you evaluate something which causes a fatal error, PHPRepl will terminate. Sorry.
  2. Output buffering is used to capture anything printed by eval’d code. If you have code which produces output over a long period of time, you may not see the results right away. Use `flush()`.
- 3. Certain settings are enforced by PHP_Repl. You can’t change the values of:
+ 3. Certain settings are enforced by PHPRepl. You can’t change the values of:
     1. `display_errors`. It’s always on.
     2. `html_errors`. Always off.
     3. `error_reporting`. Always `E_ALL | E_STRICT`.
@@ -186,24 +189,6 @@ Dangers
     5. `ob_implicit_flush`. Always on.
     6. The output buffer’s callback method.
 
-
-Emacs Integration
-=================
-Because I really like Emacs, and enjoy the integration other languages (e.g. Common Lisp, Python, etc) have with it, I put together `phprepl.el`. It’s incomplete and may be buggy.
-
-It provides `run-php`, which will fire up the PHP REPL of your choice (not just PHP_Repl, it should work with any interactive PHP tool). It has the beginnings of a minor-mode to send regions, buffers, etc to the REPL for evaluation, but this isn’t finished yet.
-
-Installation
-------------
-Drop `php-repl.el` somewhere in your `load-path` and `(require 'php-repl)`.
-
-Configuration
--------------
-It’s customizable; `M-x customize-group RET phprepl RET`. Point `php-repl-program` at `PHP/Repl.php`.
-
-Usage
------
-`M-x run-php` will fire PHP_Repl up in a `*php*` buffer. Type and be happy.
 
 
 Alternatives

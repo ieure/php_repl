@@ -1,5 +1,7 @@
 <?php
 
+namespace PHPRepl;
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
 /**
@@ -21,28 +23,30 @@
  * @author     Ian Eure <ieure@php.net>
  * @version    @package_version@
  */
-class PHP_Repl
+class PHPRepl
 {
     /**
      * Where we're reading input from
      *
      * @var resource
      */
-    private $input;
+    protected $input;
 
     /**
      * The options for this instance
      *
      * @var array
      */
-    private $options = array();
+    protected $options = array();
+
+    protected $printers = array();
 
     /**
      * The path to the configuration file
      *
      * @var string
      */
-    private $rc_file;
+    protected $rc_file;
 
 
     /**
@@ -56,13 +60,53 @@ class PHP_Repl
         $this->rc_file = getenv('PHPREPLRC') ? getenv('PHPREPLRC') :
             getenv('HOME') . '/.phpreplrc';
 
-        $defaults      = $this->defaultOptions();
-        $this->options = array_merge($defaults, $options);
+        $this->printers      = $this->getDefaultPrinters();
+        $defaults      = $this->getDefaultOptions();
+        $this->options = array_merge_recursive($defaults, $options);
 
-        if ($this->options['readline'] &&
-            is_readable($this->options['readline_hist'])) {
-            readline_read_history($this->options['readline_hist']);
+        $this->readline_support = true;
+        if (!function_exists('readline') || getenv('TERM') == 'dumb') {
+            $this->readline_support = false;
         }
+
+        if ($this->readline_support &&
+            is_readable($this->getOption('readline_hist'))) {
+            readline_read_history($this->getOption('readline_hist'));
+        }
+    }
+
+    public function getDefaultPrinters()
+    {
+        return array(
+            'NULL'          => null,
+            'double'        => 'var_dump',
+            'float'         => 'var_dump',
+            'integer'       => 'var_dump',
+            'boolean'       => 'var_dump',
+            'string'        => array('var_export',"\n"),
+            'array'         => 'print_r',
+            'object'        => 'print_r',
+            '_default_'     => 'print_r',
+        );
+    }
+
+    public function getPrinters()
+    {
+        return $this->printers;
+    }
+
+    public function setPrinter($type, $printer)
+    {
+        $this->printers[$type] = $printer;
+    }
+
+    public function getPrinter($type)
+    {
+        if (!isset($this->printers[$type])) {
+            return $this->printers['_default_'];
+        }
+
+        return $this->printers[$type];
     }
 
     /**
@@ -70,21 +114,48 @@ class PHP_Repl
      *
      * @return array Defaults
      */
-    private function defaultOptions()
+    public function getDefaultOptions()
     {
-        $defaults = array('prompt'        => 'php> ',
-                          'readline'      => true,
-                          'readline_hist' => getenv('HOME') .
-                          '/.phprepl_history');
-
-        if (!function_exists('readline') || getenv('TERM') == 'dumb') {
-            $defaults['readline'] = false;
-        }
+        $defaults = array(
+            'prompt'        => 'php> ',
+            'showtime'      => false,
+            'readline_hist' => getenv('HOME') . '/.phprepl_history',
+        );
 
         if (is_readable($this->rc_file)) {
             $defaults = array_merge($defaults, parse_ini_file($this->rc_file));
         }
         return $defaults;
+    }
+
+    /**
+     * Set options
+     *
+     * @param array $options An array of options for use in the REPL
+     *
+     */
+    public function setOptions(array $options)
+    {
+        $this->options = array_merge($this->options, $options);
+    }
+
+    public function getOptions()
+    {
+        return $this->options;
+    }
+
+    public function setOption($type, $option)
+    {
+        $this->options[$type] = $option;
+    }
+
+    public function getOption($type)
+    {
+        if (!isset($this->options[$type])) {
+            return null;
+        }
+
+        return $this->options[$type];
     }
 
     /**
@@ -95,11 +166,14 @@ class PHP_Repl
     public function __destruct()
     {
         fclose($this->input);
-        if ($this->options['readline']) {
-            readline_write_history($this->options['readline_hist']);
+        if ($this->readline_support) {
+            readline_write_history($this->getOption('readline_hist'));
         }
 
         // Save config
+        /* turning off for now (maybe permanently) as support for nested
+         * arrays is broken
+         *
         $fp = fopen($this->rc_file, 'w');
         if ($fp === false) {
             return;
@@ -108,6 +182,7 @@ class PHP_Repl
             fwrite($fp, "$k = \"$v\"\n");
         }
         fclose($fp);
+         */
     }
 
     /**
@@ -119,26 +194,26 @@ class PHP_Repl
      */
     public function run(array $scope = array())
     {
+        ob_implicit_flush(true);
+        error_reporting(E_ALL | E_STRICT);
+        ini_set('html_errors', 'Off');
+        ini_set('display_errors', 'On');
         extract($scope);
         ob_start();
         while (true) {
             // inner loop is to escape from stacked output buffers
-            while ($__ob__ = ob_get_clean() ) {
-                echo $__ob__;
+            while ($__ob__ = ob_get_clean()) {
+                echo $this->obCleanup($__ob__);
                 unset($__ob__);
             }
 
             try {
                 if (((boolean) $__code__ = $this->read()) === false) {
-                    break;
+                    continue;
                 }
-                ob_start(array($this, 'ob_cleanup'));
-                ob_implicit_flush(true);
-                error_reporting(E_ALL | E_STRICT);
-                ini_set('html_errors', 'Off');
-                ini_set('display_errors', 'On');
+                ob_start(array($this, 'obCleanup'));
 
-                $this->_print($_ = eval($this->cleanup($__code__)));
+                $this->output($_ = eval($this->cleanup($__code__)));
             } catch (Exception $e) {
                 echo ($_ = $e) . "\n";
             }
@@ -157,6 +232,7 @@ class PHP_Repl
         $code  = '';
         $done  = false;
         $lines = 0;
+        $stack = array();
         static $shifted;
         if (!$shifted) {
             // throw away argv[0]
@@ -164,10 +240,10 @@ class PHP_Repl
             $shifted = true;
         }
         do {
-            $prompt = $lines > 0 ? '> ' : $this->options['prompt'];
+            $prompt = $lines > 0 ? '> ' : ($this->getOption('showtime') ? date('G:i:s ') : '') . $this->getOption('prompt');
             if (count($_SERVER['argv'])) {
                 $line = array_shift($_SERVER['argv']);
-            } elseif ($this->options['readline']) {
+            } elseif ($this->readline_support) {
                 $line = readline($prompt);
             } else {
                 echo $prompt;
@@ -179,21 +255,54 @@ class PHP_Repl
                 return false;
             }
 
+            $done = true;
             $line = trim($line);
             // If the last char is a backslash, remove it and
             // accumulate more lines.
             if (substr($line, -1) == '\\') {
-                $line = substr($line, 0, strlen($line) - 1);
-            } else {
-                $done = true;
+                $line = trim(substr($line, 0, strlen($line) - 1));
+                $done = false;
+            }
+
+            // check for curleys and parens, keep accumulating lines.
+            $tokens = token_get_all("<?php {$line}");
+            foreach ($tokens as $t) {
+                switch ($t) {
+                    case '{':
+                    case '(':
+                        array_push($stack, $t);
+                        break;
+
+                    case '}':
+                        if ('{' !== array_pop($stack)) {
+                            throw new \Exception('Unmatched closing brace.');
+                        }
+                        break;
+                    case ')':
+                        if ('(' !== array_pop($stack)) {
+                            throw new \Exception('Unmatched closing paren.');
+                        }
+                        break;
+                }
+            }
+            if (count($stack) > 0) {
+                $last_t = array_pop($tokens);
+                if (is_array($last_t) && $last_t[0] == T_OPEN_TAG) {
+                    // if the last token was an open tag, this is nothing.
+                } elseif ($stack[count($stack) - 1] === '{' && !in_array($last_t, array('{', '}', ';'))) {
+                    // allow implied semicolons inside curlies
+                    $line .= ';';
+                }
+                $done = false;
             }
             $code .= $line;
             $lines++;
         } while (!$done);
 
         // Add the whole block to the readline history.
-        if ($this->options['readline']) {
+        if ($this->readline_support) {
             readline_add_history($code);
+            readline_write_history($this->getOption('readline_hist'));
         }
         return $code;
     }
@@ -229,10 +338,11 @@ class PHP_Repl
                 $input = $last;
             }
 
+            $tokens = token_get_all("<?php {$input}");
+
             // if the input string contains anything but a single variable,
             // wrap it in single-quotes
-            if (!(count($tokens) == 2 && isset($tokens[1][0]) &&
-                    $tokens[1][0] = T_VARIABLE)) {
+            if (!(count($tokens) == 2 && isset($tokens[1][0]) && $tokens[1][0] == T_VARIABLE)) {
                 $input = "'". str_replace("'", "\\'", $input) . "'";
             }
             return $this->cleanup("\$this->{$sugar[$m]}($input)");
@@ -285,7 +395,7 @@ class PHP_Repl
      *
      * @return string Cleaned up output
      */
-    public function ob_cleanup($output)
+    public function obCleanup($output)
     {
         if (strlen($output) > 0 && substr($output, -1) != "\n") {
             $output .= "\n";
@@ -300,29 +410,23 @@ class PHP_Repl
      *
      * @return void
      */
-    private function _print($out)
+    protected function output($out)
     {
-        $type = gettype($out);
-        switch ($type) {
-        case 'NULL':
-            break;
+        $printer = $this->getPrinter(gettype($out));
+        $extra = '';
 
-        case 'double':
-        case 'float':
-        case 'integer':
-        case 'boolean':
-            var_dump($out);
-            break;
-
-        case 'string':
-        case 'array':
-            var_export($out);
-            echo "\n";
-            break;
-
-        default:
-            print_r($out);
+        if (!$printer) {
+            return;
         }
+
+        if (is_array($printer)) {
+            $extras = $printer;
+            $printer = array_shift($extras);
+            $extra = implode('', $extras);
+        }
+
+        call_user_func($printer, $out);
+        echo $extra;
     }
 
     /**
@@ -335,36 +439,39 @@ class PHP_Repl
     protected function getReflection($thing)
     {
         switch (true) {
-        case is_object($thing):
-            return new ReflectionObject($thing);
+            case is_object($thing):
+                return new \ReflectionObject($thing);
 
-        case class_exists($thing, false):
-            return new ReflectionClass($thing);
+            case class_exists($thing, false):
+                return new \ReflectionClass($thing);
 
-        case function_exists($thing):
-            return new ReflectionFunction($thing);
+            case function_exists($thing):
+                return new \ReflectionFunction($thing);
 
-        case strstr($thing, '::'):
-            list($class, $what) = explode('::', $thing);
-            $rc = new ReflectionClass($class);
+            case strstr($thing, '::'):
+                list($class, $what) = explode('::', $thing);
+                $rc = new \ReflectionClass($class);
 
-            switch (true) {
-            case substr($what, -2) == '()':
-                $what = substr($what, 0, strlen($what) - 2);
-            case $rc->hasMethod($what):
-                return $rc->getMethod($what);
+                switch (true) {
+                    case substr($what, -2) == '()':
+                        $what = substr($what, 0, strlen($what) - 2);
+                        // fallthrough
+                    case $rc->hasMethod($what):
+                        return $rc->getMethod($what);
 
-            case substr($what, 0, 1) == '$':
-                $what = substr($what, 1);
-            case $rc->hasProperty($what):
-                return $rc->getProperty($what);
+                    case substr($what, 0, 1) == '$':
+                        $what = substr($what, 1);
+                        // fallthrough
+                    case $rc->hasProperty($what):
+                        return $rc->getProperty($what);
 
-            case $rc->hasConstant($what):
-                return $rc->getConstant($what);
-            }
+                    case $rc->hasConstant($what):
+                        return $rc->getConstant($what);
+                }
+                // fallthrough
 
-        case is_string($thing):
-            return var_export($thing) . "\n";
+            case is_string($thing):
+                return var_export($thing) . "\n";
         }
     }
 
@@ -395,8 +502,9 @@ class PHP_Repl
             echo "\${$prop->getName()}\n";
         }
         foreach ($rc->getMethods() as $meth) {
-            echo "\{$meth->getName()}()\n";
+            echo "{$meth->getName()}()\n";
         }
+
         return "---";
     }
 
@@ -410,13 +518,14 @@ class PHP_Repl
     protected function doc($thing)
     {
         if ($r = $this->getReflection($thing)) {
-            echo preg_replace('/^\s*\*/m', ' *',
-                          $r->getDocComment()) . "\n";
+            echo preg_replace(
+                '/^\s*\*/m',
+                ' *',
+                $r->getDocComment()
+            ) . "\n";
         } else {
             echo "(no doc)\n";
         }
         return "---";
     }
 }
-
-?>
