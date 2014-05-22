@@ -43,7 +43,7 @@
 
 (defgroup php-repl nil
   "Major mode for interacting with an inferior PHP interpreter."
-  :prefix "ph-repl-"
+  :prefix "php-repl-"
   :group 'php)
 
 (defcustom php-repl-program
@@ -70,19 +70,27 @@
   (interactive "p")
   (let ((buf (cond ((buffer-live-p inferior-php-buffer) inferior-php-buffer)
                    (t (generate-new-buffer "*inferior-php*")))))
-    (make-comint-in-buffer
-     "PHP" buf php-repl-program nil
-     (mapconcat 'identity php-repl-program-arguments " "))
+    (apply 'make-comint-in-buffer "PHP" buf php-repl-program nil php-repl-program-arguments)
     (setq inferior-php-buffer buf)
-    (display-buffer buf t)
-    ;; (pop-to-buffer buf t)
+    (set-process-sentinel
+     (get-buffer-process inferior-php-buffer) 'run-php-process-sentinel)
+    (unless (eq (current-buffer) inferior-php-buffer)
+      (display-buffer buf t)
+      (pop-to-buffer buf t))
     (inferior-php-mode)))
+
+(defun run-php-process-sentinel (process event)
+  "*Restart PHP process after abnormal exit."
+  (when (string-match-p "^exited abnormally with code" event)
+    (message "Restarting PHP process")
+    (run-php)))
 
 (define-derived-mode inferior-php-mode comint-mode "Inferior PHP")
 (defvar inferior-php-mode-abbrev-table
   (make-abbrev-table))
-(derived-mode-merge-abbrev-tables php-mode-abbrev-table
-                                  inferior-php-mode-abbrev-table)
+(if (boundp 'php-mode-abbrev-table)
+    (derived-mode-merge-abbrev-tables php-mode-abbrev-table
+				      inferior-php-mode-abbrev-table))
 (derived-mode-set-abbrev-table 'inferior-php-mode)
 
 (defvar eval-php-mode-map
@@ -112,7 +120,7 @@
   (save-excursion
     (comint-send-region inferior-php-buffer start end)
     (if (not (string-match "\n$" (buffer-substring start end)))
-        (comint-send-string sql-buffer "\n"))
+        (comint-send-string inferior-php-buffer "\n"))
     (display-buffer inferior-php-buffer))))
 
 (defun php-eval-sexp ())
